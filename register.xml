@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+
+<request type="register" protocol="TURK_XML">
+    <enddevice turk_id="10284" name="lampstand">
+        <interfaces>
+            <input name="button1" protocol="TURK_BOOLEAN" />
+            <output name="rgb_red" protocol="TURK_8BITCOL" />
+            <output name="rgb_green" protocol="TURK_8BITCOL" />
+            <output name="rgb_blue" protocol="TURK_8BITCOL" />
+        </interfaces>
+    </enddevice>
+</request>
