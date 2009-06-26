@@ -10,7 +10,7 @@ ZIGBEE_ADDR = "10.0.0.1"
 #HW_ADDR = '\x00\x13\xA2\x00\x40\x52\xDA\x9A'
 # This is the hardware address of one of my xbees --rob
 
-device = """<request type="register" protocol="TURK_XML">
+devicetemplate = """<request type="register" protocol="TURK_XML">
     <enddevice device_id="DEVICE_ID" name="DEVICE_NAME">
         <interfaces>
             <input name="input1" protocol="TURK_UNICODE" />
@@ -18,7 +18,7 @@ device = """<request type="register" protocol="TURK_XML">
     </enddevice>
 </request>"""
 
-data = """<request type="data" data="">
+datatemplate = """<request type="data" data="">
     <enddevice device_id="DEVICE_ID">
         <input name="input1" data="DRIVER_DATA" />
     </enddevice>
@@ -30,8 +30,9 @@ class Sender():
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.device_id = device_id
         self.device_addr = device_addr
-        self.device = device.replace('DEVICE_ID', str(device_id)).replace('DEVICE_NAME', 'sender')
-        self.data = data.replace('DRIVER_DATA', message).replace('DEVICE_ID', str(device_id))
+        self.device = devicetemplate.replace('DEVICE_ID', str(device_id)).replace('DEVICE_NAME', 'sender')
+        self.message = message
+        self.sentcounter = 0
 
     def run(self):
         # Register device with mapper
@@ -39,6 +40,9 @@ class Sender():
         while 1:
             time.sleep(10)
             # Send data packet to mapper
+            self.sentcounter = self.sentcounter + 1
+            tempmessage = self.message + str(self.sentcounter)
+            self.data = datatemplate.replace("DEVICE_ID", str(self.device_id)).replace("DRIVER_DATA", tempmessage)
             self.s.sendto(self.data, ('localhost', 44000))
 
 # Run as a standalone driver

@@ -10,8 +10,10 @@ import threading
 
 ###################### Mapper Classes ##########################################
 
-#TODO: Make this NOT a thread once fully working
-# Fork into background instead..?
+# Important note: device ID's (output_device, input_device) are INTEGERS,
+# input/output names (output_name, input_name) are STRINGS
+# DON'T mix them up, or rogue unicorns will eat your computer
+
 class Mapper():
     """
     Keeps track of all devices, and handles mapping
@@ -30,7 +32,7 @@ class Mapper():
     # interfaces is an xml dom node, not a string
     def add_device(self, device_id, name, interfaces, addr):
         print "Mapper: adding device id:%s, name:%s" % (device_id, name)
-        if self.sql_exists('devices', 'device_id', device_id):
+        if (self.db.execute('select * from devices where device_id=\'%d\'' % device_id).fetchall()):
             print "Mapper: WARNING - device already registered - removing old device..."
             # Remove the old device
             self.db.execute('delete from devices where device_id=\'%s\'' % device_id)
@@ -61,19 +63,9 @@ class Mapper():
                 #self.old_mappings.remove(mapping)
 
 
-    # Helper method that checks for rows matching one/two conditions,
-    # and return them, or an empty list otherwise
-    def sql_exists(self, table, main_column, main_value, sec_column=0, sec_value=0):
-        if sec_column == 0 :
-            results = self.db.execute('select * from %s where %s=\'%s\'' % (table, main_column, main_value)).fetchall()
-        else:
-            results = self.db.execute('select * from %s where %s=\'%s\' and %s=\'%s\'' % (db, main_column, main_value, sec_column, sec_value)).fetchall()
-        return results
-
-
     # Attaches an output to an input source. Doesn't affect database, just implements a mapping
     def attach(self, output_device, output_name, input_device, input_name):
-        print "Mapper: trying to attach %s.%s to %s.%s" % (output_device, output_name, input_device, input_name)
+        print "Mapper: trying to attach %d.%s to %d.%s" % (output_device, output_name, input_device, input_name)
         try:
             output = self.devices[output_device].outputs[output_name]
             input = self.devices[input_device].inputs[input_name]
@@ -89,11 +81,11 @@ class Mapper():
 
     # Creates a new mapping between two devices (input to output), then attaches them
     def associate(self, output_device, output_name, input_device, input_name):
-        print "Mapper: trying to associate %s.%s with %s.%s" % (output_device, output_name, input_device, input_name)
+        print "Mapper: trying to associate %d.%s with %d.%s" % (output_device, output_name, input_device, input_name)
         # Silently delete any old mappings for this output, then add it
         # TODO: Should similar mappings be deleted? or just overridden later?
-        self.db.execute('delete from mappings where output_device=\'%s\' and output_name=\'%s\'' % (output_device, output_name))
-        self.db.execute('insert into mappings values(\'%s\', \'%s\', \'%s\', \'%s\')' % (output_device, output_name, input_device, input_name))
+        self.db.execute('delete from mappings where output_device=%d and output_name=\'%s\'' % (output_device, output_name))
+        self.db.execute('insert into mappings values(%d, \'%s\', %d, \'%s\')' % (output_device, output_name, input_device, input_name))
         self.db.commit()
         self.attach(output_device, output_name, input_device, input_name)
 
@@ -162,9 +154,9 @@ class Mapper():
                     for output in outputs:
                         output_data = (output.getAttribute('device_id'), output.getAttribute('name'))
                         print "found output: name %s" % output_data[0]
-                        self.associate(output_device=output_data[0],
+                        self.associate(output_device=int(output_data[0]),
                                               output_name=output_data[1],
-                                              input_device=input_data[0],
+                                              input_device=int(input_data[0]),
                                               input_name=input_data[1])
                 
 

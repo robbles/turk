@@ -67,7 +67,7 @@ class DriverSpawner():
         self.running = 0
 
     def fetch_path(self, device_id):
-        results = self.db.execute('select * from drivers where device_id = %s limit 1' % (device_id)).fetchall()
+        results = self.db.execute('select * from drivers where device_id = %d limit 1' % (device_id)).fetchall()
         if results:
             return results[0]
         else:
