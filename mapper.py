@@ -4,7 +4,7 @@ import socket
 import Queue
 import time
 from xml.dom import minidom
-from pysqlite2 import dbapi2 as sqlite
+from sqlite3 import dbapi2 as sqlite
 import threading
 
 

@@ -5,12 +5,11 @@ by looking it up in a sqlite database. The turk server is queried for
 unknown IDs, which are then added to the database
 """
 
-#from pysqlite2 import dbapi2 as sqlite
 import socket
 import os
 import struct
 import time
-from pysqlite2 import dbapi2 as sql
+from sqlite3 import dbapi2 as sqlite
 
 
 def test(startspawner=0, port=45000):
@@ -36,7 +35,7 @@ class DriverSpawner():
         self.running = 1
 
     def run(self):
-        self.db = sql.connect('drivers.db')
+        self.db = sqlite.connect('drivers.db')
         while self.running==1:
             try:
                 buffer, ipaddr = self.s.recvfrom(1024)
