@@ -4,12 +4,15 @@ The driver-spawner creates a new instance of a driver for each device,
 by looking it up in a sqlite database. The turk server is queried for 
 unknown IDs, which are then added to the database
 """
+#TODO: Implement proper management of driver processes
+# i.e. keep a table of started drivers, shut down old ones as they're replaced
 
 import socket
 import os
 import struct
 import time
 from sqlite3 import dbapi2 as sqlite
+import signal
 
 
 def test(startspawner=0, port=45000):
@@ -41,6 +44,9 @@ class DriverSpawner():
                 buffer, ipaddr = self.s.recvfrom(1024)
             except socket.timeout:
                 continue
+            except Exception:
+                print "Spawner: warning - error reading from socket"
+                continue
             device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
             print "Spawner: received a driver request from xbee 0x%X, device_id is %u" % (device_addr, device_id) 
 
@@ -62,7 +68,7 @@ class DriverSpawner():
         self.s.close()
         self.db.close()
 
-    def shutdown(self):
+    def shutdown(self, signum, frame):
         self.running = 0
 
     def fetch_path(self, device_id):
@@ -88,6 +94,7 @@ if __name__ == '__main__':
 
     if os.fork() == 0:
         sp = DriverSpawner(port)
+        signal.signal(signal.SIGTERM, sp.shutdown)
         sp.run()
     else:
         print "Spawner daemon started"

@@ -35,16 +35,18 @@ class NunchuckDriver():
         self.s.sendto(self.device, ('localhost', 44001))
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
-        msg = struct.pack('>QH', self.device_addr, DRIVER_ID)
+        msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
         self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
+        print "nunchuck driver: sent driver initialization message to device"
 
         while 1:
+            print "nunchuck driver: listening on port %d" % int(self.s.getsockname()[1])
             buffer, addr = self.s.recvfrom(1024)
-            print "NunchuckDriver%d received '%s' from device on port %u" % (self.device_id, ' '.join([c for hex(ord(c)) in buffer]), addr[1])
+            print "NunchuckDriver%d received '%s' from device on port %u" % (self.device_id, ' '.join([hex(ord(c)) for c in buffer]), addr[1])
             # Send data to Mapper
-            # Just sending the status of nunchuck's Z button for now
-            msg = data.substitute(device_id=self.device_id, data=ord(buffer[-2]))
-            self.s.sendto(self.data, ('localhost', 44000))
+            # Just send the raw data for now
+            msg = data.substitute(device_id=self.device_id, data=buffer)
+            self.s.sendto(msg, ('localhost', 44000))
 
 
 # Run as a standalone driver

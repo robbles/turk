@@ -6,13 +6,14 @@ import time
 from xml.dom import minidom
 from sqlite3 import dbapi2 as sqlite
 import threading
+import signal
 
 
 ###################### Mapper Classes ##########################################
 
 # Important note: device ID's (output_device, input_device) are INTEGERS,
 # input/output names (output_name, input_name) are STRINGS
-# DON'T mix them up, or rogue unicorns will eat your computer
+# DON'T mix them up, or angry rogue unicorns will eat your computer
 
 class Mapper():
     """
@@ -31,7 +32,7 @@ class Mapper():
 
     # interfaces is an xml dom node, not a string
     def add_device(self, device_id, name, interfaces, addr):
-        print "Mapper: adding device id:%s, name:%s" % (device_id, name)
+        print "Mapper: adding device id:%d, name:%s" % (device_id, name)
         if (self.db.execute('select * from devices where device_id=\'%d\'' % device_id).fetchall()):
             print "Mapper: WARNING - device already registered - removing old device..."
             # Remove the old device
@@ -50,7 +51,6 @@ class Mapper():
         self.db.commit()
         # Add the new device to the list of devices
         self.devices[device_id] = new_device
-        print 'device_id: ', device_id
 
         # Try to use any old mappings that haven't been applied yet
         self.apply_mappings()
@@ -107,13 +107,16 @@ class Mapper():
 
         while 1:
             # Receive messages from Command/DataComm through dataqueue
-            #print "-->waiting for commands/data"
-            message = self.dataqueue.get()
+            # Note: queue timeout is necessary to be able to catch signals while blocking
+            try:
+                message = self.dataqueue.get(block=True, timeout=60)
+            except Queue.Empty:
+                continue
 
             # New data from a device
             if message['type'] == "data":
                 device = message['device']
-                id = device.getAttribute('device_id')
+                id = int(device.getAttribute('device_id'))
                 for input in device.getElementsByTagName('input'):
                     try:
                         name = input.getAttribute('name')
@@ -124,6 +127,7 @@ class Mapper():
 
             # Shut down the entire mapping system
             elif message['type'] == 'shutdown':
+                print "Mapper: shutting down"
                 self.data_comm.shutdown()
                 self.command_comm.shutdown()
                 self.db.execute('delete from devices')
@@ -135,7 +139,7 @@ class Mapper():
             elif message['type'] == 'register':
                 for enddevice in message['request'].getElementsByTagName('enddevice'):
                     print "found an end device"
-                    device_id = enddevice.getAttribute('device_id')
+                    device_id = int(enddevice.getAttribute('device_id'))
                     name = enddevice.getAttribute('name')
                     interfaces = enddevice.getElementsByTagName('interfaces')[0]
                     addr = message['addr']
@@ -147,12 +151,12 @@ class Mapper():
                     print "found a mapping"
                     # Get the first input (there should only be one)
                     input = mapping.getElementsByTagName('input')[0]
-                    input_data = (input.getAttribute('device_id'), input.getAttribute('name'))
+                    input_data = (int(input.getAttribute('device_id')), input.getAttribute('name'))
                     print "found input: name %s" % input_data[0]
                     # Get all the outputs to be mapped to it
                     outputs = mapping.getElementsByTagName('output')
                     for output in outputs:
-                        output_data = (output.getAttribute('device_id'), output.getAttribute('name'))
+                        output_data = (int(output.getAttribute('device_id')), output.getAttribute('name'))
                         print "found output: name %s" % output_data[0]
                         self.associate(output_device=int(output_data[0]),
                                               output_name=output_data[1],
@@ -160,7 +164,8 @@ class Mapper():
                                               input_name=input_data[1])
                 
 
-    def shutdown(self):
+    def shutdown(self, signum, frame):
+        print "Mapper: received a shutdown request"
         self.dataqueue.put({'type':'shutdown'})
 
 
@@ -303,7 +308,7 @@ class DataComm(AbstractComm):
 
             # Separate the request into several devices, if applicable
             for device in request.getElementsByTagName('enddevice'):
-                print "-->data from device %s" % (device.getAttribute('device_id'))
+                print "-->data from device %d" % (int(device.getAttribute('device_id')))
                 msg = {'type':'data', 'device':device}
                 self.parent.dataqueue.put(msg)
         else:
@@ -312,13 +317,14 @@ class DataComm(AbstractComm):
 
 
 
-
-
 if __name__ == '__main__':
     import os
     pid = os.fork()
     if pid == 0:
+        # This is the forked-off process
         mapper = Mapper()
+        # Shut down the mapper properly if we receive a TERM signal
+        signal.signal(signal.SIGTERM, mapper.shutdown)
         mapper.run()
     else:
     	print "Mapping daemon started"

@@ -41,7 +41,8 @@ class Receiver():
 
 
 # Run as a standalone driver
-
+#FIXME: This SHOULDN'T fork, because otherwise the Spawner has
+# to clean up the intermediate process (Zombie process!)
 if __name__ == '__main__':
     import sys
     import os
