@@ -1,13 +1,14 @@
 
-(function(){
-
 var selectedInput = null;
 var selectedOutput = null;
 
+(function(){
+
+
 var init = function() {
 
-    // Load the device list from Turk DataFetcher
-    $("#devicelist").load("devicecontent.html", {}, deviceSetup);
+    // Load the device list from Turk CloudBridge
+    $("#devicelist").load("devices", {'format':'xhtml', 'limitnum':'10', 'styling':'0'}, deviceSetup);
 
 }
 
@@ -15,9 +16,12 @@ function deviceSetup() {
     // Add a clear element after every third device div, to make them wrap properly
     $("#devicelist .device:nth-child(3n)").after("<div class=\"deviceclear\"></div>");
 
-    //Attach click and mouseenter events for inputs and outputs
-    $(".deviceinput").click(inputClick).mouseenter(showConnected).mouseleave(hideConnected).append("<div class=\"deviceshader\"></div>").associatedOutput = null;
-    $(".deviceoutput").click(outputClick).mouseenter(showConnected).mouseleave(hideConnected).append("<div class=\"deviceshader\"></div>").associatedInput = null;
+    //Attach click for inputs and outputs
+    $(".deviceinput").click(inputClick).append("<div class=\"deviceshader\"></div>");
+    $(".deviceoutput").click(outputClick).append("<div class=\"deviceshader\"></div>").each(function() { this.associatedInputs = []; });
+    
+    //Attach function to drop selected when clicking on body or device
+    $("body,.device").click(dropSelected);
 
     //Fade out deviceshaders
     $(".deviceshader").fadeOut("fast");
@@ -33,7 +37,10 @@ function inputClick(event) {
     // Connect to the selected Output
     if(selectedOutput) {
         connectify();
-    } 
+    } else {
+    	showConnected(this);
+    }
+    return false;
 }
 
 function outputClick(event) {
@@ -45,36 +52,57 @@ function outputClick(event) {
     // Connect to the selected Input
     if(selectedInput) {
         connectify();
-    } 
+    } else {
+    	showConnected(this);
+    }
+    return false;
 }
 
-function showConnected(event) {
-    if(this.associatedInput || this.associatedOutput) {
-        $(this.associatedInput).addClass("deviceassociated");
-        $(this.associatedOutput).addClass("deviceassociated");
+function showConnected(element) {	
+	if(element.associatedInputs) {
+	    if(element.associatedInputs.length) {
+	        $.each(element.associatedInputs, function() {
+			    $(this).children(".deviceshader").fadeIn("fast",
+					function() { $(this).fadeOut("slow") }).parent().removeClass("devicehl");
+	        });
+	    }
+    }
+    if(element.associatedOutput) {
+        $(element.associatedOutput).children(".deviceshader").fadeIn("fast",
+			function() { $(this).fadeOut("slow") }).parent().removeClass("devicehl");
     }
 }
 
-function hideConnected(event) {
-    if(this.associatedInput || this.associatedOutput) {
-        $(this.associatedInput).removeClass("deviceassociated");
-        $(this.associatedOutput).removeClass("deviceassociated");
-    }
-}
 
 function connectify() {
     // Flash Input/Output
     $(selectedInput).children(".deviceshader").fadeIn("fast", function() { $(this).fadeOut("slow") }).parent().removeClass("devicehl");
     $(selectedOutput).children(".deviceshader").fadeIn("fast", function() { $(this).fadeOut("slow") }).parent().removeClass("devicehl");
 
+	//Clear old associations
+	if(selectedInput.associatedOutput) {
+		selectedInput.associatedOutput.associatedInputs.splice($.inArray(selectedInput, selectedInput.associatedOutput.associatedInputs), 1);
+	}
+	
+	
     // Associate
     selectedInput.associatedOutput = selectedOutput;
-    selectedOutput.associatedInput = selectedInput;
+    selectedOutput.associatedInputs.push(selectedInput);
+
+    $.post('http://localhost:8080', 'request=associate&device="&input=' + $(selectedInput).attr('inputname') + "&output=" + $(selectedOutput).attr('outputname'))
+    
+    // Remove duplicate registrations of input from output
+    $.unique(selectedOutput.associatedInputs);
 
     selectedInput = selectedOutput = null;
 }
 
-
+function dropSelected() {
+	$(selectedInput).removeClass("devicehl");
+	$(selectedOutput).removeClass("devicehl");
+	selectedInput = null;
+	selectedOutput = null;	
+}
 
 
 document.addEventListener("DOMContentLoaded",init,false);

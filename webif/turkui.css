@@ -30,10 +30,6 @@ div.devicehl {
     border: 2px solid #FFFFFF;
 }
 
-div.deviceassociated {
-    background-color: #FFFFFF;
-}
-
 .deviceshader {
     position:absolute;
     width: 100%;
@@ -77,7 +73,7 @@ div.deviceassociated {
     background-color: #76C5DC;
     border-color: #095F78;
     border-bottom-color: #095F78;
-    color: #095F78;
+    color: #095f78;
     background: #76C5DC url("images/cyangradientvert2.png");
 }
 
