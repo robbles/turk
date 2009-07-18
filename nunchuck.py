@@ -12,14 +12,14 @@ ZIGBEE_ADDR = "10.0.0.1"
 device = string.Template("""<request type="register" protocol="TURK_XML">
 <enddevice device_id="$device_id" name="nunchuck">
     <interfaces>
-        <input name="z button" protocol="TURK_BOOLEAN" />
+        <input name="z_button" protocol="TURK_BOOLEAN" />
     </interfaces>
 </enddevice>
 </request>""")
 
 data = string.Template("""<request type="data">
 <enddevice device_id="$device_id">
-    <input name="z button" data="$data" />
+    <input name="zbutton" data="$data" />
 </enddevice>
 </request>""")
 

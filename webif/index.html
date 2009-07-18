@@ -6,15 +6,38 @@
 <meta http-equiv="cache-control" content="no-cache" />
 
 <link rel="stylesheet" type="text/css" href="turkui.css" />
+<script type="text/javascript" src="jquery.1.3.2.js"></script>
 <script type="text/javascript" src="turkui.js"></script>
-<script type="text/javascript" src="jquery.js"></script>
-
+<script type="text/javascript" src="jquery.qtip-1.0.0.min.js"></script>
+<script type="text/javascript" src="json2.js"></script>
+<title>Turk Platform Web Interface</title>
 </head>
 <body>
 
-<div id="devicelist">
-    <div class="deviceclear" />
+
+<div id="mainbar">
+    <div id="devicelist">
+        <div class="deviceclear"></div>
+    </div>
 </div>
+
+<div id="sidebar">
+    <div id="helpq">?</div>
+
+    <div id="showmap">#</div>
+
+    <div id="help">
+        <p>
+        Welcome to your Turk Platform's web interface! The boxes on this page represent drivers for devices connected to the platform. Each of the smaller boxes inside are input and output endpoints, which can be mapped to other compatible endpoints. Click on any endpoint to select it, and then click on another endpoint of the opposite type to connect the two. Both endpoints will flash to indicate they've been successfully connected. To drop a currently selected endpoint, just click anywhere else in the browser window (except on another endpoint!).
+        </p>
+        <p>
+        Every time you click on an endpoint, any other endpoints currently connected to it will be highlighted. To get a better view of all the current connections for all devices, click on the button marked '#' and a web of connections between all devices and endpoints will be overlayed on top of the interface. Click again to get back to inter-connecting your devices.
+        </p>
+
+    </div>
+</div>
+
+<canvas id="canvas"></canvas>
 
 </body>
 </html>

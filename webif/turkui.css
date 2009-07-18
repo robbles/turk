@@ -3,25 +3,40 @@ body {
     background-color: #666666;
     background-image: url("images/greygradient.png");
     background-repeat: repeat-x;
+    margin: 0px;
+}
+
+#sidebar {
+    float: left;
+    margin-left: -100%;
+}
+
+#mainbar {
+    float: left;
+    width: 100%;
+    
 }
 
 #devicelist {
-    width: 980px;
+    width: 700px;
     margin: 0 auto;
 }
 
-
-.device {
+.device, #helpq, #help, #showmap {
     background: #76C5DC url("images/cyangradientvert.png");
     background-repeat: repeat-x;
     border: 5px solid #51BDDC;
     border-top-color: #76C5DC; 
-    color: #FFFFFF;
-    width: 300px;
-    margin: 8px;
     font-family: Helvetica, sans-serif;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
+    color: #FFFFFF;
+    margin: 5px;
+}
+
+
+.device {
+    width: 210px;
     clear: none;
     float: left;
 }
@@ -51,7 +66,7 @@ div.devicehl {
     float: left;
 }
 
-.deviceid {
+.device_id {
     float: right;
 }
 
@@ -87,3 +102,35 @@ div.devicehl {
     width:100%;
     height: 1px;
 }
+
+#helpq, #showmap {
+    padding: 5px;
+    margin-bottom: 10px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+#help {
+    position: relative;
+    top: -120px;
+    left: -435px;
+    width: 400px;
+    padding: 10px;
+    color: #042f3c;
+    background-image: none;
+    background-color: #1D96B8;
+}
+
+#canvas {
+    visibility: hidden;
+    position:absolute;
+    left: 0px;
+    height: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+

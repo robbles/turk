@@ -7,6 +7,7 @@ from xml.dom import minidom
 from sqlite3 import dbapi2 as sqlite
 import threading
 import signal
+import SimpleXMLRPCServer
 
 
 ###################### Mapper Classes ##########################################
@@ -29,6 +30,8 @@ class Mapper():
         self.data_comm.start()
         self.command_comm.start()
         self.dataqueue = Queue.Queue(50)
+        self.server = SimpleXMLRPCServer.SimpleXMLRPCServer(addr=('localhost', 8081), allow_none=True)
+        self.server.register_introspection_functions()
 
     # interfaces is an xml dom node, not a string
     def add_device(self, device_id, name, interfaces, addr):
@@ -64,8 +67,8 @@ class Mapper():
 
 
     # Attaches an output to an input source. Doesn't affect database, just implements a mapping
-    def attach(self, output_device, output_name, input_device, input_name):
-        print "Mapper: trying to attach %d.%s to %d.%s" % (output_device, output_name, input_device, input_name)
+    def attach(self, input_device, input_name, output_device, output_name):
+        print "Mapper: trying to attach %d.%s to %d.%s" % (input_device, input_name, output_device, output_name)
         try:
             output = self.devices[output_device].outputs[output_name]
             input = self.devices[input_device].inputs[input_name]
@@ -80,19 +83,22 @@ class Mapper():
         
 
     # Creates a new mapping between two devices (input to output), then attaches them
-    def associate(self, output_device, output_name, input_device, input_name):
+    def associate(self, input_device, input_name, output_device, output_name):
         print "Mapper: trying to associate %d.%s with %d.%s" % (output_device, output_name, input_device, input_name)
         # Silently delete any old mappings for this output, then add it
         # TODO: Should similar mappings be deleted? or just overridden later?
         self.db.execute('delete from mappings where output_device=%d and output_name=\'%s\'' % (output_device, output_name))
-        self.db.execute('insert into mappings values(%d, \'%s\', %d, \'%s\')' % (output_device, output_name, input_device, input_name))
+        self.db.execute('insert into mappings (input_device,input_name,output_device,output_name) values(%d, \'%s\', %d, \'%s\')' % (input_device, input_name, output_device, output_name))
         self.db.commit()
         self.attach(output_device, output_name, input_device, input_name)
 
 
+    # TODO: route new data from inputs to their registered outputs
+    def route(self, device_id, input_name, input_data):
+        pass
+
 
     # Main Loop
-
     def run(self):
         # Start database connection - can only be accessed in this thread!
         self.db = sqlite.connect('mappings.db')
@@ -102,9 +108,15 @@ class Mapper():
         self.db.commit()
 
         # Get all the old mappings, and try to use them later as devices are registered
-        self.old_mappings = self.db.execute('select * from mappings').fetchall()
+        self.old_mappings = self.db.execute('select input_device,input_name,output_device,output_name from mappings').fetchall()
         print 'old_mappings: ', self.old_mappings
 
+#        # Won't ever get further than this...just testing for now
+#        self.server.register_function(self.add_device, 'register_device')
+#        self.server.register_function(self.associate, 'associate_devices')
+#        self.server.register_function(self.route, 'send_data')
+#        self.server.serve_forever()
+        
         while 1:
             # Receive messages from Command/DataComm through dataqueue
             # Note: queue timeout is necessary to be able to catch signals while blocking
@@ -130,7 +142,8 @@ class Mapper():
                 print "Mapper: shutting down"
                 self.data_comm.shutdown()
                 self.command_comm.shutdown()
-                self.db.execute('delete from devices')
+                #FIXME: should clear devices table on shutdown (or should it? :o)
+#                self.db.execute('delete from devices')
                 self.db.commit()
                 self.db.close()
                 break
