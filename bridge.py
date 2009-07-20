@@ -33,7 +33,7 @@ class CloudBridge:
         # Now that the sqlite connection is open, move to the webif directory
         # so that the stupidly-designed interface to SimpleHTTPHandler works properly
         os.chdir('./webif')
-        self.http_server = HTTPServer(('localhost', server_port), BridgeHTTPHandler)
+        self.http_server = HTTPServer(('', server_port), BridgeHTTPHandler)
 
     def run(self):
         self.http_server.serve_forever()

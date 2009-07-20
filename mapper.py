@@ -14,8 +14,10 @@ import SimpleXMLRPCServer
 
 # Important note: device ID's (output_device, input_device) are INTEGERS,
 # input/output names (output_name, input_name) are STRINGS
-# DON'T mix them up, or angry rogue unicorns will eat your computer
+# DON'T mix them up, or angry digital unicorns will eat your computer
 
+#TODO: either implement an XML-RPC method that allows bridge to notify of changes to mappings,
+#      or keep periodically checking the database
 class Mapper():
     """
     Keeps track of all devices, and handles mapping
@@ -95,7 +97,16 @@ class Mapper():
 
     # TODO: route new data from inputs to their registered outputs
     def route(self, device_id, input_name, input_data):
-        pass
+        if device_id in self.devices:
+            if input_name in self.devices[device_id].inputs:
+                self.devices[device_id].inputs[input_name].notify_outputs(input_data)
+            else:
+                print "%s not in list of inputs for device %s" % (input_name, device_id)
+                return
+        else:
+            print "device %s is unknown" % (device_id)
+            return
+        print "routed data successfully"
 
 
     # Main Loop
@@ -111,7 +122,7 @@ class Mapper():
         self.old_mappings = self.db.execute('select input_device,input_name,output_device,output_name from mappings').fetchall()
         print 'old_mappings: ', self.old_mappings
 
-#        # Won't ever get further than this...just testing for now
+#        # fun with XML-RPC
 #        self.server.register_function(self.add_device, 'register_device')
 #        self.server.register_function(self.associate, 'associate_devices')
 #        self.server.register_function(self.route, 'send_data')
@@ -128,12 +139,12 @@ class Mapper():
             # New data from a device
             if message['type'] == "data":
                 device = message['device']
-                id = int(device.getAttribute('device_id'))
+                device_id = int(device.getAttribute('device_id'))
                 for input in device.getElementsByTagName('input'):
                     try:
-                        name = input.getAttribute('name')
-                        data = input.getAttribute('data')
-                        self.devices[id].inputs[name].notify_outputs(data)
+                        input_name = input.getAttribute('name')
+                        input_data = input.getAttribute('data')
+                        self.route(device_id, input_name, input_data)
                     except Exception:
                         print "Error accessing data from message or device/input"
 

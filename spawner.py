@@ -48,7 +48,7 @@ class DriverSpawner():
                 print "Spawner: warning - error reading from socket"
                 continue
             device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
-            print "Spawner: received a driver request from xbee 0x%X, device_id is %u" % (device_addr, device_id) 
+            print "Spawner: received a driver request from xbee 0x%X with device_id %u, from %s" % (device_addr, device_id, ipaddr) 
 
             # Get the driver's path from the db
             results = self.fetch_path(device_id)

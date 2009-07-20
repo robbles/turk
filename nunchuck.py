@@ -17,9 +17,9 @@ device = string.Template("""<request type="register" protocol="TURK_XML">
 </enddevice>
 </request>""")
 
-data = string.Template("""<request type="data">
+data_template = string.Template("""<request type="data">
 <enddevice device_id="$device_id">
-    <input name="zbutton" data="$data" />
+    <input name="z_button" data="$data" />
 </enddevice>
 </request>""")
 
@@ -45,7 +45,11 @@ class NunchuckDriver():
             print "NunchuckDriver%d received '%s' from device on port %u" % (self.device_id, ' '.join([hex(ord(c)) for c in buffer]), addr[1])
             # Send data to Mapper
             # Just send the raw data for now
-            msg = data.substitute(device_id=self.device_id, data=buffer)
+            if buffer == 1:
+                data = 'TRUE'
+            else:
+                data = 'FALSE'
+            msg = data_template.substitute(device_id=self.device_id, data=data)
             self.s.sendto(msg, ('localhost', 44000))
 
 

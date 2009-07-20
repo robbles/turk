@@ -8,6 +8,7 @@ cd $COREPATH
 # Start TURK system services
 ./mapper.py
 ./spawner.py
+./bridge.py &
 
 cd $CALLPATH
 
