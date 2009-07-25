@@ -13,7 +13,11 @@ import struct
 import time
 from sqlite3 import dbapi2 as sqlite
 import signal
+from urllib import urlopen
+from xml.dom.minidom import parseString
+import string
 
+TURKCLOUD_DRIVER_INFO = string.Template('http://turkinnovations.com/turkapp/drivers/4.xml
 
 def test(startspawner=0, port=45000):
     #                         Zigbee Address       Turk Device ID
@@ -23,7 +27,7 @@ def test(startspawner=0, port=45000):
     else:
         sp = 0
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    msg = struct.pack('>QQQ', 0, 0x0013A2004052DA9A, 1)
+    msg = struct.pack('>QQ', 0x0013A2004052DA9A, 5)
     s.sendto(msg, ('localhost', port))
     s.close()
     if sp:
@@ -54,7 +58,7 @@ class DriverSpawner():
             results = self.fetch_path(device_id)
             
             #TODO: need to test whether driver should be spawned multiple times,
-            # or notified to respawn itself instead
+            # or notified to respawn itself instead, or managed by spawner
 
             if results != None:
                 drivername, driverargs = results[2], results[3]
@@ -72,13 +76,23 @@ class DriverSpawner():
         self.running = 0
 
     def fetch_path(self, device_id):
-        results = self.db.execute('select * from drivers where device_id = %d limit 1' % (device_id)).fetchall()
-        if results:
-            return results[0]
-        else:
-            print "Spawner: no driver found for %s" % (device_id)
-            # TODO: fetch the driver from the Turk servers
+        try:
+            results = self.db.execute('select * from drivers where device_id = %d limit 1' % (device_id)).fetchall()
+            if results:
+                return results[0]
+            else:
+                print "Spawner: no driver found for %s, trying to GET from server" % (device_id)
+                fetch_driver(device_id)
+                return self.fetch_path(device_id)
+        except Exception, e
+            print "Failed getting driver"
+            print e
             return None
+
+    def fetch_driver(self, device_id):
+        driver_info = parseString(urlopen(TURKCLOUD_DRIVER_INFO.substitute(driver_id=device_id)).read())
+        
+
 
 
 

@@ -3,32 +3,39 @@ import socket
 import time
 import struct
 from xml.dom.minidom import parseString
+import xmlrpclib
 
+DRIVER_ID = 1
 ZIGBEE_ADDR = "10.0.0.1"
+MAPPER_ADDR = 'http://localhost:44000'
 
-device = """<request type="register" protocol="TURK_XML">
-    <enddevice device_id="DEVICE_ID" name="DEVICE_NAME">
-        <interfaces>
-            <output name="output1" protocol="TURK_UNICODE" />
-        </interfaces>
-    </enddevice>
-</request>"""
-
-data = """<request type="data" data="">
-    <enddevice device_id="DEVICE_ID">
-        <output name="output1" data="DRIVER_DATA" />
-    </enddevice>
-</request>"""
+description = """
+<interfaces>
+<output name="output1" protocol="TURK_UNICODE" />
+</interfaces>
+"""
 
 class Receiver():
     def __init__(self, device_id, device_addr):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.device_id = device_id
         self.device_addr = device_addr
-        self.device = device.replace('DEVICE_ID', str(device_id)).replace('DEVICE_NAME', 'receiver')
+        self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
 
     def run(self):
-        self.s.sendto(self.device, ('localhost', 44001))
+        # Let the kernel pick a port number
+        self.s.bind(('', 0))
+        # Send a device registration request to Mapper
+        self.mapper.register_device(self.device_id,
+                                    'receiver',
+                                    description,
+                                    self.s.getsockname())
+        # Send an initialization message to device
+        # Contains xbee address (which is removed by driver), and driver id
+        msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
+        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
+        print "receiver driver: sent driver initialization message to device"
+
         while 1:
             buffer, addr = self.s.recvfrom(1024)
             print "Receiver%s received '%s' from Mapper on port %u" % (self.device_addr, buffer, addr[1])

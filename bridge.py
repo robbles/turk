@@ -7,10 +7,12 @@ import cgi
 from sqlite3 import dbapi2 as sqlite
 from xml.dom.minidom import parseString
 import string
+import xmlrpclib
 
 import pdb
 
 
+MAPPER_ADDR = 'http://localhost:44000'
 
 class CloudBridge:
     """
@@ -30,6 +32,7 @@ class CloudBridge:
         self._basedir = basedir
         self._server_port = server_port
         self.db = sqlite.connect('mappings.db')
+        self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
         # Now that the sqlite connection is open, move to the webif directory
         # so that the stupidly-designed interface to SimpleHTTPHandler works properly
         os.chdir('./webif')
@@ -49,12 +52,8 @@ class CloudBridge:
     def add_mapping(self, input_device, input_name, output_device, output_name):
         """ Adds a new mapping to the database """
         print "add_mapping called"
-        # Outputs can only have one input, so delete any mappings that match this output
-        self.db.execute("""delete from mappings where output_device=? and output_name=?""",
-                        (output_device, output_name))
-        self.db.execute("""insert into mappings (input_device,input_name,output_device,output_name)
-                           values(?,?,?,?)""",(input_device, input_name, output_device, output_name))
-        self.db.commit()
+        # Do the mapping through the mapping daemon to ensure consistency
+        self.mapper.make_mapping(input_device, input_name, output_device, output_name)
         print "mapping added!"
 
     def remove_mapping(self, input_device, input_name, output_device, output_name):
@@ -73,10 +72,11 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
     """
     An HTTP handler for the cloud bridge that is used by the Web Interface.
     Since it runs a basic webserver in 'webif/' and exports data in XML and JSON, it can
-    be used to build alternative interfaces to the platform.
+    be used to build alternative user interfaces to the platform.
 
     NOTE: do_GET is handled by SimpleHTTPRequestHandler, this just defines do_POST
     """
+    #TODO: Actually support JSON ;P
 
     def do_POST(self):
         # Parse the form data posted
@@ -87,6 +87,8 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
 
         #self.wfile.write('Client: %s\n' % str(self.client_address))
         print '\n\n[POST]: Path: %s' % self.path
+
+        print form
 
         try:
             # Send back an xhtml-formatted list of devices

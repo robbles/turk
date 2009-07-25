@@ -4,46 +4,48 @@ import time
 import struct
 import threading
 from xml.dom.minidom import parseString
+import xmlrpclib
+
+DRIVER_ID = 2
 
 ZIGBEE_ADDR = "10.0.0.1"
+MAPPER_ADDR = 'http://localhost:44000'
 
-#HW_ADDR = '\x00\x13\xA2\x00\x40\x52\xDA\x9A'
-# This is the hardware address of one of my xbees --rob
-
-devicetemplate = """<request type="register" protocol="TURK_XML">
-    <enddevice device_id="DEVICE_ID" name="DEVICE_NAME">
-        <interfaces>
-            <input name="input1" protocol="TURK_UNICODE" />
-        </interfaces>
-    </enddevice>
-</request>"""
-
-datatemplate = """<request type="data" data="">
-    <enddevice device_id="DEVICE_ID">
-        <input name="input1" data="DRIVER_DATA" />
-    </enddevice>
-</request>"""
-
+description = """
+<interfaces>
+<input name="input1" protocol="TURK_UNICODE" />
+</interfaces>
+"""
 
 class Sender():
     def __init__(self, device_id, device_addr, message):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.device_id = device_id
         self.device_addr = device_addr
-        self.device = devicetemplate.replace('DEVICE_ID', str(device_id)).replace('DEVICE_NAME', 'sender')
+        self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
         self.message = message
         self.sentcounter = 0
 
     def run(self):
-        # Register device with mapper
-        self.s.sendto(self.device, ('localhost', 44001))
+        # Let the kernel pick a port number
+        self.s.bind(('', 0))
+        # Send a device registration request to Mapper
+        self.mapper.register_device(self.device_id,
+                                    'sender',
+                                    description,
+                                    self.s.getsockname())
+        # Send an initialization message to device
+        # Contains xbee address (which is removed by driver), and driver id
+        msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
+        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
+        print "nunchuck driver: sent driver initialization message to device"
+
         while 1:
             time.sleep(10)
             # Send data packet to mapper
             self.sentcounter = self.sentcounter + 1
             tempmessage = self.message + str(self.sentcounter)
-            self.data = datatemplate.replace("DEVICE_ID", str(self.device_id)).replace("DRIVER_DATA", tempmessage)
-            self.s.sendto(self.data, ('localhost', 44000))
+            self.mapper.route_data(self.device_id, {'input1':tempmessage})
 
 # Run as a standalone driver
 

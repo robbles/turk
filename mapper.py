@@ -16,43 +16,45 @@ import SimpleXMLRPCServer
 # input/output names (output_name, input_name) are STRINGS
 # DON'T mix them up, or angry digital unicorns will eat your computer
 
-#TODO: either implement an XML-RPC method that allows bridge to notify of changes to mappings,
-#      or keep periodically checking the database
+# TODO make bridge do all it's sqlite changes through the mapper
 class Mapper():
     """
     Keeps track of all devices, and handles mapping
     of DeviceOutputs and DeviceInputs.
-    Also keeps all the data in a SQLite database and restores previous 
-    data on relaunch
+    All of the mapping and device info is kept in a SQLite database, which is managed by this class. 
+    Data in mappings is restored on restart of the platform, but not devices. This may change in future.
+    
+    All database and mapping functionality is exposed through XML-RPC
     """
-    def __init__(self, dcport=44000, ccport=44001):
+    def __init__(self, port=44000):
         self.devices = {}
-        self.data_comm = DataComm(self, dcport)
-        self.command_comm = CommandComm(self, ccport)
-        self.data_comm.start()
-        self.command_comm.start()
         self.dataqueue = Queue.Queue(50)
-        self.server = SimpleXMLRPCServer.SimpleXMLRPCServer(addr=('localhost', 8081), allow_none=True)
+        # fun with XML-RPC :D
+        self.server = SimpleXMLRPCServer.SimpleXMLRPCServer(addr=('localhost', port), allow_none=True)
+        self.server.register_function(self.register_device, 'register_device')
+        self.server.register_function(self.make_mapping, 'make_mapping')
+        self.server.register_function(self.route_data, 'route_data')
         self.server.register_introspection_functions()
 
     # interfaces is an xml dom node, not a string
-    def add_device(self, device_id, name, interfaces, addr):
+    def register_device(self, device_id, name, description, addr):
         print "Mapper: adding device id:%d, name:%s" % (device_id, name)
-        if (self.db.execute('select * from devices where device_id=\'%d\'' % device_id).fetchall()):
+        if (self.db.execute('select * from devices where device_id=?', (device_id,)).fetchall()):
             print "Mapper: WARNING - device already registered - removing old device..."
             # Remove the old device
-            self.db.execute('delete from devices where device_id=\'%s\'' % device_id)
+            self.db.execute('delete from devices where device_id=?', (device_id,))
             self.db.commit()
 
         new_device = EndDevice(name, addr, self)
-        inputs = interfaces.getElementsByTagName('input')
-        outputs = interfaces.getElementsByTagName('output')
+        inter_xml = minidom.parseString(description)
+        inputs = inter_xml.getElementsByTagName('input')
+        outputs = inter_xml.getElementsByTagName('output')
         for input in inputs:
             new_device.add_input(input.getAttribute('name'), input.getAttribute('protocol'))
         for output in outputs:
             new_device.add_output(output.getAttribute('name'), output.getAttribute('protocol'))
         # Add to the database while Mapper is running
-        self.db.execute('insert into devices values (\'%s\', \'%s\', \'%s\')' % (device_id, name, interfaces.toxml()))
+        self.db.execute('insert into devices values (?, ?, ?)', (device_id, name, description))
         self.db.commit()
         # Add the new device to the list of devices
         self.devices[device_id] = new_device
@@ -68,7 +70,7 @@ class Mapper():
                 #self.old_mappings.remove(mapping)
 
 
-    # Attaches an output to an input source. Doesn't affect database, just implements a mapping
+    # Attaches an output to an input source. Doesn't affect database, just implements a virtual mapping
     def attach(self, input_device, input_name, output_device, output_name):
         print "Mapper: trying to attach %d.%s to %d.%s" % (input_device, input_name, output_device, output_name)
         try:
@@ -77,36 +79,37 @@ class Mapper():
             input.register(output)
 
         except KeyError:
-            print "Error while trying to map inputs/outputs - make sure they both exist..."
+            print "Error while trying to map inputs/outputs - perhaps they only exist in your head?"
             print "Input devices's inputs:", self.devices[input_device].inputs
             print "Output device's outputs:", self.devices[output_device].outputs
             return
-        print "Mapper: mapping success"
+        print "Mapper: mapping implemented - %d.%s is now the only source of data for %d.%s" % (input_device, input_name, output_device, output_name)
         
 
     # Creates a new mapping between two devices (input to output), then attaches them
-    def associate(self, input_device, input_name, output_device, output_name):
-        print "Mapper: trying to associate %d.%s with %d.%s" % (output_device, output_name, input_device, input_name)
+    def make_mapping(self, input_device, input_name, output_device, output_name):
+        print "Mapper: trying to associate output %d.%s with input %d.%s" % (output_device, output_name, input_device, input_name)
         # Silently delete any old mappings for this output, then add it
-        # TODO: Should similar mappings be deleted? or just overridden later?
-        self.db.execute('delete from mappings where output_device=%d and output_name=\'%s\'' % (output_device, output_name))
-        self.db.execute('insert into mappings (input_device,input_name,output_device,output_name) values(%d, \'%s\', %d, \'%s\')' % (input_device, input_name, output_device, output_name))
+        self.db.execute('delete from mappings where output_device=? and output_name=?', (output_device, output_name))
+        self.db.execute('insert into mappings (input_device,input_name,output_device,output_name) values(?, ?, ?, ?)', (input_device, input_name, output_device, output_name))
         self.db.commit()
         self.attach(output_device, output_name, input_device, input_name)
 
 
     # TODO: route new data from inputs to their registered outputs
-    def route(self, device_id, input_name, input_data):
+    def route_data(self, device_id, input_data):
         if device_id in self.devices:
-            if input_name in self.devices[device_id].inputs:
-                self.devices[device_id].inputs[input_name].notify_outputs(input_data)
-            else:
-                print "%s not in list of inputs for device %s" % (input_name, device_id)
-                return
+            for input_name in input_data.keys():
+                if input_name in self.devices[device_id].inputs:
+                    self.devices[device_id].inputs[input_name].notify_outputs(input_data[input_name])
+                    print "routed data from %s.%s successfully!" % (device_id, input_name)
+                else:
+                    print "%s not in list of inputs for device %s" % (input_name, device_id)
+                    return
         else:
             print "device %s is unknown" % (device_id)
             return
-        print "routed data successfully"
+        print "done routing"
 
 
     # Main Loop
@@ -122,12 +125,11 @@ class Mapper():
         self.old_mappings = self.db.execute('select input_device,input_name,output_device,output_name from mappings').fetchall()
         print 'old_mappings: ', self.old_mappings
 
-#        # fun with XML-RPC
-#        self.server.register_function(self.add_device, 'register_device')
-#        self.server.register_function(self.associate, 'associate_devices')
-#        self.server.register_function(self.route, 'send_data')
-#        self.server.serve_forever()
+        self.server.serve_forever()
         
+
+
+        ########### THIS WILL NEVER RUN #################
         while 1:
             # Receive messages from Command/DataComm through dataqueue
             # Note: queue timeout is necessary to be able to catch signals while blocking
@@ -144,7 +146,7 @@ class Mapper():
                     try:
                         input_name = input.getAttribute('name')
                         input_data = input.getAttribute('data')
-                        self.route(device_id, input_name, input_data)
+                        self.route_data(device_id, input_name, input_data)
                     except Exception:
                         print "Error accessing data from message or device/input"
 
@@ -167,7 +169,7 @@ class Mapper():
                     name = enddevice.getAttribute('name')
                     interfaces = enddevice.getElementsByTagName('interfaces')[0]
                     addr = message['addr']
-                    self.add_device(device_id, name, interfaces, addr)
+                    self.register_device(device_id, name, interfaces, addr)
 
             # Make a new mapping between an input and output(s)
             elif message['type'] == 'mapping':
@@ -182,15 +184,22 @@ class Mapper():
                     for output in outputs:
                         output_data = (int(output.getAttribute('device_id')), output.getAttribute('name'))
                         print "found output: name %s" % output_data[0]
-                        self.associate(output_device=int(output_data[0]),
+                        self.make_mapping(output_device=int(output_data[0]),
                                               output_name=output_data[1],
                                               input_device=int(input_data[0]),
                                               input_name=input_data[1])
+        ###########   NEVER RAN   #################
+
+
+
                 
 
-    def shutdown(self, signum, frame):
+    def shutdown(self, signum, data):
         print "Mapper: received a shutdown request"
-        self.dataqueue.put({'type':'shutdown'})
+        print [signame for signame in signal.__dict__.keys() if signal.__dict__[signame] == signum][0]
+        #self.db.execute('delete from devices')
+        self.db.commit()
+        self.db.close()
 
 
 ###################### Observer Pattern Classes ################################
@@ -256,94 +265,12 @@ class EndDevice:
         self.inputs[name] = DeviceInput(name, protocol)
 
 
-##################### Socket Communication Classes #####################################
-
-class AbstractComm(threading.Thread):
-    """
-    An abstract class that handles communication with other
-    processes and threads
-    """
-    def __init__(self, parent, port):
-        threading.Thread.__init__(self)
-        self.parent = parent
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.bind(('localhost', port))
-        self.setDaemon(1)
-        self.socket.settimeout(20)
-        self.running = 1
-       
-    def run(self):
-        while self.running==1:
-            try:
-                buffer, addr = self.socket.recvfrom(1024)
-            except socket.timeout:
-                continue
-            except Exception:
-                continue
-            t = threading.Thread(target = self.handle, args = (buffer, addr))
-            t.start()
-        self.socket.close()
-
-    def handle(self, buffer, args):
-        raise NotImplementedError("AbstractComm handle not implemented")
-
-    def shutdown(self):
-        self.running = 0
-
-
-#TODO: Convert both of these to use XML-RPC instead of our own random protocol
-
-class CommandComm(AbstractComm):
-    """
-    Handles mapping and device registration requests
-    """
-    def handle(self, buffer, addr):
-        request = minidom.parseString(buffer).firstChild
-        
-        if request.tagName == 'request':
-
-            # Device Registration requests
-            if request.getAttribute('type') == 'register':
-                print "CommandComm: Device registration request received"
-                msg = {'type':'register', 'request':request, 'addr':addr }
-                self.parent.dataqueue.put(msg)
-
-            # Mapping Requests
-            elif request.getAttribute('type') == 'mapping':
-                print "CommandComm: Mapping request received"
-                msg = {'type':'mapping', 'request':request}
-                self.parent.dataqueue.put(msg)
-
-            else:
-                print "CommandComm: Unrecognized request type!"
-
-
-class DataComm(AbstractComm):
-    """
-    Handles data to and from drivers
-    """
-    def handle(self, buffer, addr):
-        #print "DataComm: received a message from port %u" % (addr[1])
-        request = minidom.parseString(buffer).firstChild
-
-        # New data from device
-        if request.tagName == 'request' and request.getAttribute('type') == 'data':
-            print "DataComm: new data received"
-
-            # Separate the request into several devices, if applicable
-            for device in request.getElementsByTagName('enddevice'):
-                print "-->data from device %d" % (int(device.getAttribute('device_id')))
-                msg = {'type':'data', 'device':device}
-                self.parent.dataqueue.put(msg)
-        else:
-            print "DataComm: Unrecognized request type!"
-
-
 
 
 if __name__ == '__main__':
     import os
-    pid = os.fork()
+    #pid = os.fork()
+    pid = 0
     if pid == 0:
         # This is the forked-off process
         mapper = Mapper()

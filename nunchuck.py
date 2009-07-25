@@ -4,35 +4,36 @@ import time
 import struct
 from xml.dom.minidom import parseString
 import string
+import xmlrpclib
 
 DRIVER_ID = 5
 
 ZIGBEE_ADDR = "10.0.0.1"
+MAPPER_ADDR = 'http://localhost:44000'
 
-device = string.Template("""<request type="register" protocol="TURK_XML">
-<enddevice device_id="$device_id" name="nunchuck">
-    <interfaces>
-        <input name="z_button" protocol="TURK_BOOLEAN" />
-    </interfaces>
-</enddevice>
-</request>""")
-
-data_template = string.Template("""<request type="data">
-<enddevice device_id="$device_id">
-    <input name="z_button" data="$data" />
-</enddevice>
-</request>""")
+description="""
+<interfaces>
+<input name="joy_x_axis" protocol="TURK_BYTE" />
+<input name="joy_y_axis" protocol="TURK_BYTE" />
+<input name="z_button" protocol="TURK_BOOLEAN" />
+</interfaces>
+"""
 
 class NunchuckDriver():
     def __init__(self, device_id, device_addr):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.device_id = device_id
         self.device_addr = device_addr
-        self.device = device.substitute(device_id=self.device_id)
+        self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
 
     def run(self):
+        # Let the kernel pick a port number
+        self.s.bind(('', 0))
         # Send a device registration request to Mapper
-        self.s.sendto(self.device, ('localhost', 44001))
+        self.mapper.register_device(self.device_id,
+                                    'nunchuck',
+                                    description,
+                                    self.s.getsockname())
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
@@ -43,14 +44,14 @@ class NunchuckDriver():
             print "nunchuck driver: listening on port %d" % int(self.s.getsockname()[1])
             buffer, addr = self.s.recvfrom(1024)
             print "NunchuckDriver%d received '%s' from device on port %u" % (self.device_id, ' '.join([hex(ord(c)) for c in buffer]), addr[1])
+            (joy_x_axis, joy_y_axis,
+             accel_x_axis, accel_y_axis, accel_z_axis,
+             z_button, c_button) = struct.unpack('>BBHHHBB', buffer)
             # Send data to Mapper
-            # Just send the raw data for now
-            if buffer == 1:
-                data = 'TRUE'
-            else:
-                data = 'FALSE'
-            msg = data_template.substitute(device_id=self.device_id, data=data)
-            self.s.sendto(msg, ('localhost', 44000))
+            self.mapper.route_data(self.device_id,
+                                   {'joy_x_axis':joy_x_axis,
+                                    'joy_y_axis':joy_y_axis,
+                                    'z_button':z_button})
 
 
 # Run as a standalone driver
