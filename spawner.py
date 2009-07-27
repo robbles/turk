@@ -39,7 +39,7 @@ class DriverSpawner():
     def __init__(self, port=45000):
         self.s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         print "Using port %d" % port
-        self.s.bind(('localhost', port))
+        self.s.bind(('', port))
         self.s.settimeout(3)
         self.running = 1
         self.driver_list = []
