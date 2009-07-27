@@ -5,7 +5,7 @@ by looking it up in a sqlite database. The turk server is queried for
 unknown IDs, which are then added to the database
 """
 #TODO: Implement proper management of driver processes
-# i.e. keep a table of started drivers, shut down old ones as they're replaced
+# i.e. keep a table of started drivers pids, shut down old ones as they're replaced
 
 import socket
 import os
@@ -13,21 +13,22 @@ import struct
 import time
 from sqlite3 import dbapi2 as sqlite
 import signal
-from urllib import urlopen
+import urllib2
 from xml.dom.minidom import parseString
 import string
+import subprocess
 
-TURKCLOUD_DRIVER_INFO = string.Template('http://turkinnovations.com/turkapp/drivers/4.xml
+TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
+TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
 
-def test(startspawner=0, port=45000):
-    #                         Zigbee Address       Turk Device ID
+def test(device_id, startspawner=0, port=45000):
     if startspawner == 1:
         sp = DriverSpawner()
         sp.start()
     else:
         sp = 0
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    msg = struct.pack('>QQ', 0x0013A2004052DA9A, 5)
+    msg = struct.pack('>QQ', 0x0013A2004052DA9A, device_id)
     s.sendto(msg, ('localhost', port))
     s.close()
     if sp:
@@ -37,9 +38,11 @@ def test(startspawner=0, port=45000):
 class DriverSpawner():
     def __init__(self, port=45000):
         self.s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.bind(('', port))
+        print "Using port %d" % port
+        self.s.bind(('localhost', port))
         self.s.settimeout(3)
         self.running = 1
+        self.driver_list = []
 
     def run(self):
         self.db = sqlite.connect('drivers.db')
@@ -48,7 +51,8 @@ class DriverSpawner():
                 buffer, ipaddr = self.s.recvfrom(1024)
             except socket.timeout:
                 continue
-            except Exception:
+            except Exception, err:
+                print err
                 print "Spawner: warning - error reading from socket"
                 continue
             device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
@@ -62,35 +66,66 @@ class DriverSpawner():
 
             if results != None:
                 drivername, driverargs = results[2], results[3]
-                args = [drivername, str(device_id), "0x%X" % device_addr]
-                if driverargs != '':
-                    args.extend(driverargs.split(' '))
-                os.spawnv(os.P_NOWAIT, str(results[2]), args)
+                print "starting driver %s" % drivername
+                args = ['./' + drivername, str(device_id), "0x%X" % device_addr]
+                args.extend(driverargs.split())
+                self.driver_list.append(subprocess.Popen(args, stdout=sys.stdout))
 
-        # Shutdown was called, close the socket
+        # Shutdown was called, close all drivers and socket
         print "Spawner: Shutting down..."
+        for driver in self.driver_list:
+            driver.terminate()
         self.s.close()
         self.db.close()
+        print
 
     def shutdown(self, signum, frame):
+        print 'received shutdown request'
         self.running = 0
 
     def fetch_path(self, device_id):
         try:
-            results = self.db.execute('select * from drivers where device_id = %d limit 1' % (device_id)).fetchall()
+            results = self.db.execute('select * from drivers where device_id = ? limit 1', (device_id,)).fetchall()
             if results:
                 return results[0]
             else:
                 print "Spawner: no driver found for %s, trying to GET from server" % (device_id)
-                fetch_driver(device_id)
-                return self.fetch_path(device_id)
-        except Exception, e
+                return self.fetch_driver(device_id)
+        except Exception, e:
             print "Failed getting driver"
             print e
             return None
 
+    #TODO: check for 404s and 500s and do something about it
+    # and also 418s - the driver may be a teapot
     def fetch_driver(self, device_id):
-        driver_info = parseString(urlopen(TURKCLOUD_DRIVER_INFO.substitute(driver_id=device_id)).read())
+        try:
+            # Just assume driver_id == device_id for now
+            driver_id = device_id
+            driver_info = parseString(urllib2.urlopen(TURK_CLOUD_DRIVER_INFO.substitute(driver_id=driver_id)).read())
+            driver = driver_info.getElementsByTagName('driver')[0] 
+            filename = driver.getAttribute('file')
+            title = driver.getAttribute('title')
+            if driver.hasAttribute('arguments'):
+                args = driver.getAttribute('arguments')
+            else:
+                args = ''
+            print "fetched driver info, driver's name is %s" % title
+            print "fetching: " + TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename)
+            try:
+                driverdata = urllib2.urlopen(TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
+                driverfile = open(filename, 'w')
+                driverfile.write(driverdata.read())
+                driverfile.close()
+                self.db.execute('insert into drivers (device_id, driver_id, location, arguments) values (?, ?, ?, ?)', (int(device_id), int(driver_id), filename, args))
+                self.db.commit()
+                print "saved driver data successfully"
+                return [device_id, driver_id, filename, args]
+            except urllib2.HTTPError, err:
+                print "Couldn't fetch driver resource - HTTP error %d" % err.getcode()
+                return None
+        except Exception, err:
+            print err
         
 
 
@@ -106,10 +141,12 @@ if __name__ == '__main__':
     else:
         port = 45000
 
-    if os.fork() == 0:
+    pid = os.fork()
+    if pid == 0:
         sp = DriverSpawner(port)
         signal.signal(signal.SIGTERM, sp.shutdown)
         sp.run()
+        print 'spawner daemon finished'
     else:
         print "Spawner daemon started"
 

@@ -9,8 +9,6 @@ from xml.dom.minidom import parseString
 import string
 import xmlrpclib
 
-import pdb
-
 
 MAPPER_ADDR = 'http://localhost:44000'
 
@@ -77,6 +75,7 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
     NOTE: do_GET is handled by SimpleHTTPRequestHandler, this just defines do_POST
     """
     #TODO: Actually support JSON ;P
+    #TODO: Return the web interface as XML, and use an XSLT stylesheet defined in the request
 
     def do_POST(self):
         # Parse the form data posted
@@ -127,7 +126,6 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
 
         except Exception, e:
             print e
-            pdb.set_trace()
 
 
     def get_devices(self):

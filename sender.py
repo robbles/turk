@@ -34,11 +34,6 @@ class Sender():
                                     'sender',
                                     description,
                                     self.s.getsockname())
-        # Send an initialization message to device
-        # Contains xbee address (which is removed by driver), and driver id
-        msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
-        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
-        print "nunchuck driver: sent driver initialization message to device"
 
         while 1:
             time.sleep(10)

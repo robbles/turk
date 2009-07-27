@@ -28,7 +28,7 @@ class NunchuckDriver():
 
     def run(self):
         # Let the kernel pick a port number
-        self.s.bind(('', 0))
+        self.s.bind(('localhost', 0))
         # Send a device registration request to Mapper
         self.mapper.register_device(self.device_id,
                                     'nunchuck',
@@ -37,8 +37,12 @@ class NunchuckDriver():
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
-        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
-        print "nunchuck driver: sent driver initialization message to device"
+        try:
+            self.s.sendto(msg, (ZIGBEE_ADDR, 1))
+            print "nunchuck driver: sent driver initialization message to device"
+        except Exception, err:
+            print "nunchuck driver: warning, failed sending init to device"
+            print err
 
         while 1:
             print "nunchuck driver: listening on port %d" % int(self.s.getsockname()[1])
@@ -65,7 +69,7 @@ if __name__ == '__main__':
     else:
         device_id = int(sys.argv[1], 10)
         device_addr = int(sys.argv[2], 16)
-        if os.fork() == 0:
+        if 0 == 0:
             print "nunchuck driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
             driver = NunchuckDriver(device_id, device_addr)
             driver.run()

@@ -33,7 +33,7 @@ class Receiver():
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
-        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
+        self.s.sendto(msg, (ZIGBEE_ADDR, 1))
         print "receiver driver: sent driver initialization message to device"
 
         while 1:

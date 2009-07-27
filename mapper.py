@@ -128,72 +128,6 @@ class Mapper():
         self.server.serve_forever()
         
 
-
-        ########### THIS WILL NEVER RUN #################
-        while 1:
-            # Receive messages from Command/DataComm through dataqueue
-            # Note: queue timeout is necessary to be able to catch signals while blocking
-            try:
-                message = self.dataqueue.get(block=True, timeout=60)
-            except Queue.Empty:
-                continue
-
-            # New data from a device
-            if message['type'] == "data":
-                device = message['device']
-                device_id = int(device.getAttribute('device_id'))
-                for input in device.getElementsByTagName('input'):
-                    try:
-                        input_name = input.getAttribute('name')
-                        input_data = input.getAttribute('data')
-                        self.route_data(device_id, input_name, input_data)
-                    except Exception:
-                        print "Error accessing data from message or device/input"
-
-            # Shut down the entire mapping system
-            elif message['type'] == 'shutdown':
-                print "Mapper: shutting down"
-                self.data_comm.shutdown()
-                self.command_comm.shutdown()
-                #FIXME: should clear devices table on shutdown (or should it? :o)
-#                self.db.execute('delete from devices')
-                self.db.commit()
-                self.db.close()
-                break
-
-            # Register a new device
-            elif message['type'] == 'register':
-                for enddevice in message['request'].getElementsByTagName('enddevice'):
-                    print "found an end device"
-                    device_id = int(enddevice.getAttribute('device_id'))
-                    name = enddevice.getAttribute('name')
-                    interfaces = enddevice.getElementsByTagName('interfaces')[0]
-                    addr = message['addr']
-                    self.register_device(device_id, name, interfaces, addr)
-
-            # Make a new mapping between an input and output(s)
-            elif message['type'] == 'mapping':
-                for mapping in message['request'].getElementsByTagName('mapping'):
-                    print "found a mapping"
-                    # Get the first input (there should only be one)
-                    input = mapping.getElementsByTagName('input')[0]
-                    input_data = (int(input.getAttribute('device_id')), input.getAttribute('name'))
-                    print "found input: name %s" % input_data[0]
-                    # Get all the outputs to be mapped to it
-                    outputs = mapping.getElementsByTagName('output')
-                    for output in outputs:
-                        output_data = (int(output.getAttribute('device_id')), output.getAttribute('name'))
-                        print "found output: name %s" % output_data[0]
-                        self.make_mapping(output_device=int(output_data[0]),
-                                              output_name=output_data[1],
-                                              input_device=int(input_data[0]),
-                                              input_name=input_data[1])
-        ###########   NEVER RAN   #################
-
-
-
-                
-
     def shutdown(self, signum, data):
         print "Mapper: received a shutdown request"
         print [signame for signame in signal.__dict__.keys() if signal.__dict__[signame] == signum][0]
@@ -269,8 +203,7 @@ class EndDevice:
 
 if __name__ == '__main__':
     import os
-    #pid = os.fork()
-    pid = 0
+    pid = os.fork()
     if pid == 0:
         # This is the forked-off process
         mapper = Mapper()
