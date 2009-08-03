@@ -8,7 +8,6 @@ import xmlrpclib
 
 DRIVER_ID = 2
 
-ZIGBEE_ADDR = "10.0.0.1"
 MAPPER_ADDR = 'http://localhost:44000'
 
 description = """
@@ -46,7 +45,6 @@ class Sender():
 
 if __name__ == '__main__':
     import sys
-    import os
 
     if len(sys.argv) < 3:
         print 'usage: sender.py [driver decimal id] 0x[xbee hex address] [message]'
@@ -54,10 +52,9 @@ if __name__ == '__main__':
         device_id = int(sys.argv[1], 10)
         device_addr = int(sys.argv[2], 16)
         message = sys.argv[3]
-        if os.fork() == 0:
-            print "sender started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
-            sender = Sender(device_id, device_addr, message)
-            sender.run()
+        print "sender started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
+        sender = Sender(device_id, device_addr, message)
+        sender.run()
 
 
     

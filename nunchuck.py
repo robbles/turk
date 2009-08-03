@@ -28,7 +28,7 @@ class NunchuckDriver():
 
     def run(self):
         # Let the kernel pick a port number
-        self.s.bind(('localhost', 0))
+        self.s.bind(('', 0))
         # Send a device registration request to Mapper
         self.mapper.register_device(self.device_id,
                                     'nunchuck',
@@ -62,17 +62,15 @@ class NunchuckDriver():
 
 if __name__ == '__main__':
     import sys
-    import os
 
     if len(sys.argv) < 3:
         print 'usage: nunchuck.py [driver decimal id] 0x[xbee hex address] '
     else:
         device_id = int(sys.argv[1], 10)
         device_addr = int(sys.argv[2], 16)
-        if 0 == 0:
-            print "nunchuck driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
-            driver = NunchuckDriver(device_id, device_addr)
-            driver.run()
+        print "nunchuck driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
+        driver = NunchuckDriver(device_id, device_addr)
+        driver.run()
 
     
 

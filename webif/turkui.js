@@ -22,7 +22,7 @@ var mappings = {};
 var init = function() {
 
     // Load the device list from Turk CloudBridge
-    $("#devicelist").load("devices", {'format':'xhtml', 'limitnum':'10'}, deviceSetup);
+    var devices = $.post("devices", {'format':'xhtml'}, deviceSetup);
 
     // Load the current mappings from CloudBridge
     $.post("mappings", {'format':'xml'}, parseMappings, 'xml');
@@ -36,6 +36,7 @@ var init = function() {
     $("#canvas").click(function() { $("#canvas").css('visibility', 'hidden'); });
 
 }
+
 
 // Reloads mappings and data from bridge with AJAX
 function refreshData() {
@@ -66,7 +67,13 @@ function parseMappings(responseXML) {
 }
 
 // Sets up dom elements that represent connected devices
-function deviceSetup() {
+function deviceSetup(responseXHTML) {
+    if(responseXHTML == '' || responseXHTML == null) {
+        return;
+    }
+    // Add device data into the DOM
+    $("#devicelist").html(responseXHTML);
+
     // Add a clear element after every third device div, to make them wrap properly
     $("#devicelist .device:nth-child(3n)").after("<div class=\"deviceclear\"></div>");
 

@@ -8,6 +8,7 @@ from sqlite3 import dbapi2 as sqlite
 import threading
 import signal
 import SimpleXMLRPCServer
+import string
 
 
 ###################### Mapper Classes ##########################################
@@ -16,7 +17,6 @@ import SimpleXMLRPCServer
 # input/output names (output_name, input_name) are STRINGS
 # DON'T mix them up, or angry digital unicorns will eat your computer
 
-# TODO make bridge do all it's sqlite changes through the mapper
 class Mapper():
     """
     Keeps track of all devices, and handles mapping
@@ -35,6 +35,8 @@ class Mapper():
         self.server.register_function(self.make_mapping, 'make_mapping')
         self.server.register_function(self.route_data, 'route_data')
         self.server.register_introspection_functions()
+        # TODO: Figure out how to use the XML-RPC server's socket
+        self.outsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # interfaces is an xml dom node, not a string
     def register_device(self, device_id, name, description, addr):
@@ -45,7 +47,7 @@ class Mapper():
             self.db.execute('delete from devices where device_id=?', (device_id,))
             self.db.commit()
 
-        new_device = EndDevice(name, addr, self)
+        new_device = EndDevice(name, tuple(addr), self)
         inter_xml = minidom.parseString(description)
         inputs = inter_xml.getElementsByTagName('input')
         outputs = inter_xml.getElementsByTagName('output')
@@ -93,7 +95,7 @@ class Mapper():
         self.db.execute('delete from mappings where output_device=? and output_name=?', (output_device, output_name))
         self.db.execute('insert into mappings (input_device,input_name,output_device,output_name) values(?, ?, ?, ?)', (input_device, input_name, output_device, output_name))
         self.db.commit()
-        self.attach(output_device, output_name, input_device, input_name)
+        self.attach(input_device, input_name, output_device, output_name)
 
 
     # TODO: route new data from inputs to their registered outputs
@@ -130,8 +132,7 @@ class Mapper():
 
     def shutdown(self, signum, data):
         print "Mapper: received a shutdown request"
-        print [signame for signame in signal.__dict__.keys() if signal.__dict__[signame] == signum][0]
-        #self.db.execute('delete from devices')
+        self.db.execute('delete from devices')
         self.db.commit()
         self.db.close()
 
@@ -147,10 +148,13 @@ class DeviceOutput:
         self.name = name
         self.protocol = protocol
         self.parent = parent
+        self.data_template = string.Template("<data output=\"%s\">$data</data>" % name)
 
-    def notify(self, event):
-        print "%s.%s: received %s" % (self.parent.name, self.name, event)
-        self.parent.parent.data_comm.socket.sendto(event, self.parent.addr)
+    def notify(self, data):
+        print "%s.%s: received %s" % (self.parent.name, self.name, data)
+        message = self.data_template.substitute(data=data)
+        # FIXME: This is seriously awkward-looking
+        self.parent.parent.outsocket.sendto(message, self.parent.addr)
 
 
 # TODO: Make sure an output can't be registered twice with an input...

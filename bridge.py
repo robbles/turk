@@ -49,20 +49,20 @@ class CloudBridge:
 
     def add_mapping(self, input_device, input_name, output_device, output_name):
         """ Adds a new mapping to the database """
-        print "add_mapping called"
         # Do the mapping through the mapping daemon to ensure consistency
         self.mapper.make_mapping(input_device, input_name, output_device, output_name)
-        print "mapping added!"
 
     def remove_mapping(self, input_device, input_name, output_device, output_name):
         """ Removes a specific mapping from the database """
         self.db.execute("""delete from mappings where input_device=? and input_name=? and output_device=?
                            and output_name=?""",(input_device, input_name, output_device, output_name))
-        print('deleted a mapping!')
 
     def remove_all_mappings(self, device, name):
         self.db.execute("""delete from mappings where input_device=? and input_name=?""", (device, name))
         self.db.execute("""delete from mappings where output_device=? and output_name=?""", (device, name))
+
+    def log(msg):
+        pass
 
 
 
@@ -85,31 +85,31 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
                                          'CONTENT_TYPE':self.headers['Content-Type']})
 
         #self.wfile.write('Client: %s\n' % str(self.client_address))
-        print '\n\n[POST]: Path: %s' % self.path
+        self.log_message('\n\n[POST]: Path: %s' % self.path)
 
-        print form
+        self.log_message(form)
 
         try:
             # Send back an xhtml-formatted list of devices
             if self.path.endswith('/devices'):
-                print 'Request for current devices received - sending back listing'
+                self.log_message('Request for current devices received - sending back listing')
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(self.get_devices())
 
             # Send back an xhtml-formatted list of device IO mappings
             elif self.path.endswith('/mappings'):
-                print 'Request for current device mappings received'
+                self.log_message('Request for current device mappings received')
                 self.send_response(200)
                 self.end_headers()
                 mappings = self.get_mappings().next()
-                print 'sending \'%s\'' % mappings
+                self.log_message('sending \'%s\'' % mappings)
                 self.wfile.write(mappings)
 
             elif self.path.endswith('/map'):
-                print 'Request for new device mapping received'
-                print 'input: %s.%s' % (form['input_device'].value, form['input_name'].value)
-                print 'output: %s.%s' % (form['output_device'].value, form['output_name'].value)
+                self.log_message('Request for new device mapping received')
+                self.log_message('input: %s.%s' % (form['input_device'].value, form['input_name'].value))
+                self.log_message('output: %s.%s' % (form['output_device'].value, form['output_name'].value))
                 self.send_response(200)
                 self.end_headers()
                 bridge.add_mapping(int(form['input_device'].value),
@@ -118,14 +118,14 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
                                    form['output_name'].value)
 
             elif self.path.endswith('/unmap'):
-                print 'Request to remove device mapping received'
-                print 'device: %s  name: %s' % (form['device'].value, form['name'].value);
-                bridge.remove_all_mappings(int(form['device'].value), form['name'].value);
+                self.log_message('Request to remove device mapping received')
+                self.log_message('device: %s  name: %s' % (form['device'].value, form['name'].value))
+                bridge.remove_all_mappings(int(form['device'].value), form['name'].value)
                 self.send_response(200)
                 self.end_headers()
 
         except Exception, e:
-            print e
+            self.log_message(e)
 
 
     def get_devices(self):
@@ -155,6 +155,10 @@ class BridgeHTTPHandler(SimpleHTTPRequestHandler):
         else:
             mappings = bridge.get_mapping_list()
             yield ''.join(self.get_mappings(mappings))
+
+    # Override the default logging behaviour
+    def log_message(self, format, *args):
+        pass
 
 
 
@@ -193,8 +197,12 @@ bridge = CloudBridge('./', 8080)
 
 
 if __name__ == '__main__':
-    print 'Starting cloudbridge server...'
-    bridge.run()
+    if os.fork() == 0:
+        # de-activate stdout from SimpleHTTP
+        bridge.run()
+    else:
+        print 'Starting cloudbridge server...'
+
 
 
 
