@@ -4,7 +4,6 @@ import os
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 import cgi
-from sqlite3 import dbapi2 as sqlite
 from xml.dom.minidom import parseString
 import string
 import xmlrpclib
@@ -29,10 +28,7 @@ class CloudBridge:
         """
         self._basedir = basedir
         self._server_port = server_port
-        self.db = sqlite.connect('mappings.db')
         self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
-        # Now that the sqlite connection is open, move to the webif directory
-        # so that the stupidly-designed interface to SimpleHTTPHandler works properly
         os.chdir('./webif')
         self.http_server = HTTPServer(('', server_port), BridgeHTTPHandler)
 

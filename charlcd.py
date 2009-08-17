@@ -15,7 +15,7 @@ description = """
 </interfaces>
 """
 
-class Receiver():
+class LCD():
     def __init__(self, device_id, device_addr):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.device_id = device_id
@@ -27,18 +27,18 @@ class Receiver():
         self.s.bind(('', 0))
         # Send a device registration request to Mapper
         self.mapper.register_device(self.device_id,
-                                    'receiver',
+                                    'charlcd',
                                     description,
                                     self.s.getsockname())
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
         self.s.sendto(msg, (ZIGBEE_ADDR, 1))
-        print "receiver driver: sent driver initialization message to device"
+        print "LCD driver: sent driver initialization message to device"
 
         while 1:
             buffer, addr = self.s.recvfrom(1024)
-            print "Receiver%s received '%s' from Mapper on port %u" % (self.device_addr, buffer, addr[1])
+            print "LCD%s received '%s' from Mapper on port %u" % (self.device_addr, buffer, addr[1])
             print "--> sending to device address of 0x%X" % self.device_addr
             time.sleep(1)
             # Send data to device. Note: getsockname() only works for unbound sockets once they've sent something already
@@ -54,12 +54,12 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 3:
-        print 'usage: receiver.py [driver decimal id] 0x[xbee hex address] '
+        print 'usage: charlcd.py [driver decimal id] 0x[xbee hex address] '
     else:
         device_id = int(sys.argv[1], 10)
         device_addr = int(sys.argv[2], 16)
-        print "receiver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
-        receiver = Receiver(device_id, device_addr)
-        receiver.run()
+        print "Character LCD started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
+        lcd = LCD(device_id, device_addr)
+        lcd.run()
 
     

@@ -65,13 +65,16 @@ class DriverSpawner():
             # or notified to respawn itself instead, or managed by spawner
 
             if results != None:
-                drivername, driverargs = results[2], results[3]
-                print "starting driver %s" % drivername
-                args = ['./' + drivername, str(device_id), "0x%X" % device_addr]
-                args.extend(driverargs.split())
-                self.driver_list.append(subprocess.Popen(args, stdout=sys.stdout))
+                try:
+                    drivername, driverargs = results[2], results[3]
+                    print "starting driver %s" % drivername
+                    args = ['./' + drivername, str(device_id), "0x%X" % device_addr]
+                    args.extend(driverargs.split())
+                    self.driver_list.append(subprocess.Popen(args, stdout=sys.stdout))
+                except Exception, e:
+                    print 'failed starting driver: %s' % e
 
-        # Shutdown was called, close all drivers and socket
+        # Shutdown was called, close all drivers and sockets
         print "Spawner: Shutting down..."
         for driver in self.driver_list:
             driver.terminate()
@@ -102,12 +105,13 @@ class DriverSpawner():
         try:
             # Just assume driver_id == device_id for now
             driver_id = device_id
-            driver_info = parseString(urllib2.urlopen(TURK_CLOUD_DRIVER_INFO.substitute(driver_id=driver_id)).read())
+            addr = TURK_CLOUD_DRIVER_INFO.substitute(driver_id=driver_id)
+            driver_info = parseString(urllib2.urlopen(addr).read())
             driver = driver_info.getElementsByTagName('driver')[0] 
             filename = driver.getAttribute('file')
             title = driver.getAttribute('title')
-            if driver.hasAttribute('arguments'):
-                args = driver.getAttribute('arguments')
+            if driver.hasAttribute('argument'):
+                args = driver.getAttribute('argument')
             else:
                 args = ''
             print "fetched driver info, driver's name is %s" % title
@@ -117,13 +121,14 @@ class DriverSpawner():
                 driverfile = open(filename, 'w')
                 driverfile.write(driverdata.read())
                 driverfile.close()
-                self.db.execute('insert into drivers (device_id, driver_id, location, arguments) values (?, ?, ?, ?)', (int(device_id), int(driver_id), filename, args))
-                self.db.commit()
-                print "saved driver data successfully"
-                return [device_id, driver_id, filename, args]
             except urllib2.HTTPError, err:
                 print "Couldn't fetch driver resource - HTTP error %d" % err.getcode()
                 return None
+            self.db.execute('insert into drivers (device_id, driver_id, location, arguments) values (?, ?, ?, ?)',
+                            (int(device_id), int(driver_id), filename, args))
+            self.db.commit()
+            print "saved driver data successfully"
+            return [device_id, driver_id, filename, args]
         except Exception, err:
             print err
         

@@ -37,12 +37,8 @@ class NunchuckDriver():
         # Send an initialization message to device
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
-        try:
-            self.s.sendto(msg, (ZIGBEE_ADDR, 1))
-            print "nunchuck driver: sent driver initialization message to device"
-        except Exception, err:
-            print "nunchuck driver: warning, failed sending init to device"
-            print err
+        self.s.sendto(msg, (ZIGBEE_ADDR, int(self.s.getsockname()[1])))
+        print "nunchuck driver: sent driver initialization message to device"
 
         while 1:
             print "nunchuck driver: listening on port %d" % int(self.s.getsockname()[1])
@@ -62,6 +58,7 @@ class NunchuckDriver():
 
 if __name__ == '__main__':
     import sys
+    import os
 
     if len(sys.argv) < 3:
         print 'usage: nunchuck.py [driver decimal id] 0x[xbee hex address] '
