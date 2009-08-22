@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-
-<request type="data" data="">
-    <enddevice turk_id="10284">
-        <input name="button1" data="1" />
-    </enddevice>
-</request>

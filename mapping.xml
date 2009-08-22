@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-
-<request type="mapping" protocol="TURK_XML">
-    <mapping>
-        <input device_id="10284" name="button1" />
-        <output device_id="10566" name="rgb_red" />
-    </mapping>
-</request>
-
