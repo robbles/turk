@@ -5,12 +5,11 @@ by looking it up in a sqlite database. The turk server is queried for
 unknown IDs, which are then added to the database
 """
 #TODO: Implement proper management of driver processes
-# i.e. keep a table of started drivers pids, shut down old ones as they're replaced
+# i.e. keep track of drivers already running by device_id
 
 import socket
-import os
+import sys
 import struct
-import time
 from sqlite3 import dbapi2 as sqlite
 import signal
 import urllib2
@@ -21,7 +20,9 @@ import subprocess
 TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
 TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
 
-def test(device_id, startspawner=0, port=45000):
+SPAWNER_PORT = 45000
+
+def test(device_id, startspawner=0, port=SPAWNER_PORT):
     if startspawner == 1:
         sp = DriverSpawner()
         sp.start()
@@ -35,10 +36,10 @@ def test(device_id, startspawner=0, port=45000):
         sp.shutdown()
 
 
-class DriverSpawner():
-    def __init__(self, port=45000):
+class DriverSpawner:
+    def __init__(self, port=SPAWNER_PORT, drivers_db='drivers.db'):
         self.s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        print "Using port %d" % port
+        print "Spawner: listening for devices on UDP port %d" % port
         self.s.bind(('', port))
         self.s.settimeout(3)
         self.running = 1
@@ -46,17 +47,22 @@ class DriverSpawner():
 
     def run(self):
         self.db = sqlite.connect('drivers.db')
-        while self.running==1:
+        while self.running:
             try:
-                buffer, ipaddr = self.s.recvfrom(1024)
+                buffer, addr = self.s.recvfrom(1024)
             except socket.timeout:
                 continue
             except Exception, err:
-                print err
-                print "Spawner: warning - error reading from socket"
-                continue
+                break
+            except KeyboardInterrupt:
+                print 'spawner keyboard int'
+                break
+
             device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
-            print "Spawner: received a driver request from xbee 0x%X with device_id %u, from %s" % (device_addr, device_id, ipaddr) 
+            print "Spawner: received a driver request from xbee 0x%X with device_id %u, from %s" % (device_addr, device_id, addr)
+
+            if addr[1] != 1:
+                print 'Spawner: warning, source port is not 0x0001 - may not be a valid Turk Device Start Packet'
 
             # Get the driver's path from the db
             results = self.fetch_path(device_id)
@@ -75,15 +81,14 @@ class DriverSpawner():
                     print 'failed starting driver: %s' % e
 
         # Shutdown was called, close all drivers and sockets
-        print "Spawner: Shutting down..."
+        print "Spawner: interrupted, shutting down..."
         for driver in self.driver_list:
             driver.terminate()
         self.s.close()
         self.db.close()
         print
 
-    def shutdown(self, signum, frame):
-        print 'received shutdown request'
+    def shutdown(self, *args):
         self.running = 0
 
     def fetch_path(self, device_id):
@@ -134,25 +139,24 @@ class DriverSpawner():
         
 
 
-
-
-# Run standalone
+def run(daemon=False):
+    """
+    Start Spawner as a standalone process.
+    if daemon = True, forks into the background first
+    """
+    if daemon:
+        import os
+        pid = os.fork()
+        if pid:
+            return pid
+    spawner = DriverSpawner()
+    # Shut down the mapper properly if we receive a TERM signal
+    signal.signal(signal.SIGTERM, spawner.shutdown)
+    spawner.run()
 
 if __name__ == '__main__':
-    import sys
-    import os
-    if len(sys.argv) > 1:
-        port = int(sys.argv[1])
+    if len(sys.argv) == 2 and sys.argv[1] == '--daemon':
+        run(True)
     else:
-        port = 45000
-
-    pid = os.fork()
-    if pid == 0:
-        sp = DriverSpawner(port)
-        signal.signal(signal.SIGTERM, sp.shutdown)
-        sp.run()
-        print 'spawner daemon finished'
-    else:
-        print "Spawner daemon started"
-
+        run(False)
 

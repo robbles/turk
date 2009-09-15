@@ -7,6 +7,7 @@ import cgi
 from xml.dom.minidom import parseString
 import string
 import xmlrpclib
+from socket import error as socket_error
 
 
 MAPPER_ADDR = 'http://localhost:44000'
@@ -29,7 +30,7 @@ class CloudBridge:
         self._basedir = basedir
         self._server_port = server_port
         self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
-        os.chdir('./webif')
+        os.chdir(basedir)
         self.http_server = HTTPServer(('', server_port), BridgeHTTPHandler)
 
     def run(self):
@@ -189,15 +190,20 @@ def device_xml2xhtml(node, device_id=None, device_name=None):
 
 
 # Start a single global CloudBridge instance, but don't automatically start it yet
-bridge = CloudBridge('./', 8080)
+bridge = CloudBridge('./', 8001)
 
-
-if __name__ == '__main__':
-    if os.fork() == 0:
+def run_daemon():
+    pid = os.fork()
+    if pid == 0:
         # de-activate stdout from SimpleHTTP
         bridge.run()
     else:
         print 'Starting cloudbridge server...'
+        return pid
+
+
+if __name__ == '__main__':
+    run_daemon()
 
 
 
