@@ -16,6 +16,7 @@ import urllib2
 from xml.dom.minidom import parseString
 import string
 import subprocess
+import os
 
 TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
 TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
@@ -54,9 +55,6 @@ class DriverSpawner:
                 continue
             except Exception, err:
                 break
-            except KeyboardInterrupt:
-                print 'spawner keyboard int'
-                break
 
             device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
             print "Spawner: received a driver request from xbee 0x%X with device_id %u, from %s" % (device_addr, device_id, addr)
@@ -68,16 +66,16 @@ class DriverSpawner:
             results = self.fetch_path(device_id)
             
             #TODO: need to test whether driver should be spawned multiple times,
-            # or notified to respawn itself instead, or managed by spawner
+            # or notified to respawn itself instead, or managed completely by spawner
 
             if results != None:
                 try:
                     drivername, driverargs = results[2], results[3]
                     print "starting driver %s" % drivername
                     args = ['./' + drivername, str(device_id), "0x%X" % device_addr]
-                    args.extend(driverargs.split())
+                    args.extend(driverargs.split())                    
                     self.driver_list.append(subprocess.Popen(args, stdout=sys.stdout))
-                except Exception, e:
+                except OSError, e:
                     print 'failed starting driver: %s' % e
 
         # Shutdown was called, close all drivers and sockets
@@ -121,21 +119,24 @@ class DriverSpawner:
                 args = ''
             print "fetched driver info, driver's name is %s" % title
             print "fetching: " + TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename)
-            try:
-                driverdata = urllib2.urlopen(TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
-                driverfile = open(filename, 'w')
-                driverfile.write(driverdata.read())
-                driverfile.close()
-            except urllib2.HTTPError, err:
-                print "Couldn't fetch driver resource - HTTP error %d" % err.getcode()
-                return None
+            driverdata = urllib2.urlopen(TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
+            filename = 'ddrivers/%s' % filename
+            driverfile = open(filename, 'w')
+            driverfile.write(driverdata.read())
+            driverfile.close()
+            # TODO: figure out permissions so drivers can't fuck everything up
+            os.chmod(filename, 0755)
             self.db.execute('insert into drivers (device_id, driver_id, location, arguments) values (?, ?, ?, ?)',
                             (int(device_id), int(driver_id), filename, args))
             self.db.commit()
             print "saved driver data successfully"
             return [device_id, driver_id, filename, args]
+        except urllib2.HTTPError, err:
+            print "Couldn't fetch driver resource - HTTP error %d" % err.getcode()
+            return None
         except Exception, err:
             print err
+            return None
         
 
 

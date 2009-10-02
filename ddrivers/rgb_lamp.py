@@ -5,8 +5,8 @@ import struct
 from xml.dom.minidom import parseString
 import xmlrpclib
 
-DRIVER_ID = 1
-ZIGBEE_ADDR = "10.0.0.1"
+DRIVER_ID = 6
+ZIGBEE_ADDR = "localhost"
 MAPPER_ADDR = 'http://localhost:44000'
 
 description = """
@@ -29,7 +29,8 @@ class RGBLamp():
         # Let the kernel pick a port number
         self.s.bind(('', 0))
         # Send a device registration request to Mapper
-        self.mapper.register_device(self.device_id,
+        self.mapper.register_driver(self.device_id,
+                                    DRIVER_ID,
                                     'rgb_lamp',
                                     description,
                                     self.s.getsockname())
@@ -37,11 +38,11 @@ class RGBLamp():
         # Contains xbee address (which is removed by driver), and driver id
         msg = struct.pack('>QI', self.device_addr, DRIVER_ID)
         self.s.sendto(msg, (ZIGBEE_ADDR, 1))
-        print "receiver driver: sent driver initialization message to device"
+        print "RGBLamp driver: sent driver initialization message to device"
 
         while 1:
             buffer, addr = self.s.recvfrom(1024)
-            print "Receiver%s received '%s' from Mapper on port %u" % (self.device_addr, buffer, addr[1])
+            print "RGBLamp%s received '%s' from Mapper on port %u" % (self.device_addr, buffer, addr[1])
             try:
                 data = parseString(buffer).firstChild
                 output = data.getAttribute('output')

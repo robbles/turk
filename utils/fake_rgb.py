@@ -43,8 +43,7 @@ class RGB_Display(Thread):
         """ Cycle colors when not being controlled externally """
         while 1:
             time.sleep(1)
-            self.color = tuple([(c + random.randint(0, 2)) % 256 for c in self.color])
-
+            self.color = tuple([max(0, min(255, (c + random.randint(-2, 2)))) for c in self.color])
 
     def get_rand_color(self):
         return [random.getrandbits(8) for i in range(3)]
@@ -66,6 +65,7 @@ color_page = string.Template("""
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <head>
+<meta http-equiv="refresh" content="1">
 <meta http-equiv="pragma" content="no-cache">
 <style type="text/css">
 body { margin:0px;padding:0px;background:#000000; }
@@ -87,7 +87,6 @@ class RGB_HTTPHandler(SimpleHTTPRequestHandler):
             SimpleHTTPRequestHandler.do_GET(self)
 
     def serve_page(self):
-        global color_page
         self.send_response(200)
         self.wfile.write(color_page.substitute(color=self.get_color()))
 
@@ -103,11 +102,12 @@ if __name__ == '__main__':
     # Start HTTP server to show current color
     http_server = HTTPServer(('', 0), RGB_HTTPHandler)
     print 'starting HTTP server on', http_server.socket.getsockname() 
+    os.system('echo %d | pbcopy' % http_server.socket.getsockname()[1])
     http_server_thread = Thread(target=http_server.serve_forever)
     http_server_thread.daemon = True
     http_server_thread.start()
 
-    RGB = RGB_Display((255, 255, 255))
+    RGB = RGB_Display((0, 0, 255))
     # Start cycling colors automatically
     RGB.start()
 

@@ -16,7 +16,7 @@ MAPPER_PORT = 44000
 # driver/application names are STRINGS
 # don't mix them up, or angry digital unicorns will eat your computer
 
-class Mapper:
+class Mapper(object):
     """
     Keeps track of all devices, and handles routing between drivers and applications
     All of the mapping and device info is kept in a SQLite database, which is managed by this class. 
@@ -45,13 +45,13 @@ class Mapper:
         self.outsocket.sendto(msg, addr)
         print 'Mapper: sent \'%s\' to %s' % (msg, addr)
 
-    def register_driver(self, device_id, driver_id, driver_name, driver_info, driver_addr, driver_type):
+    def register_driver(self, device_id, driver_id, driver_name, driver_info, driver_addr):
         """
         Drivers register themselves through the XML-RPC interface,
         providing a device_id and name, and a structure providing additional info/options
         """
         # TODO: Automatically get address from server request if not specified
-        self.drivers[device_id] = Driver(device_id, driver_id, driver_name, driver_addr, driver_type, self)
+        self.drivers[device_id] = Driver(device_id, driver_id, driver_name, driver_addr, self)
         self.db.execute('insert into devices values(?, ?, ?, ?)', (device_id, driver_id, driver_name, driver_info))
 
     def register_app(self, app_id, app_name, device_ids, app_addr):
@@ -108,12 +108,11 @@ class Mapper:
 ###################### Driver and Applications ################################
 
 class Driver:
-    def __init__(self, device_id, driver_id, name, addr, type, mapper):
+    def __init__(self, device_id, driver_id, name, addr, mapper):
         self.device_id = device_id
         self.driver_id = driver_id
         self.name = name
         self.addr = addr
-        self.type = type
         self.mapper = mapper
         self.app = None
 

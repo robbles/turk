@@ -27,13 +27,14 @@ class CloudBridge:
             with all html/css/images if served by this program
         server_port -- the port to start the HTTP server on
         """
-        self._basedir = basedir
-        self._server_port = server_port
+        self.basedir = basedir
+        self.server_port = server_port
         self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
         os.chdir(basedir)
         self.http_server = HTTPServer(('', server_port), BridgeHTTPHandler)
 
     def run(self):
+        print 'Bridge: starting HTTP server on port %d' % self.server_port
         self.http_server.serve_forever()
 
     def get_device_list(self):
@@ -66,7 +67,7 @@ class CloudBridge:
 class BridgeHTTPHandler(SimpleHTTPRequestHandler):
     """
     An HTTP handler for the cloud bridge that is used by the Web Interface.
-    Since it runs a basic webserver in 'webif/' and exports data in XML and JSON, it can
+    Since it runs a basic webserver in 'cloud/' and exports data in XML and JSON, it can
     be used to build alternative user interfaces to the platform.
 
     NOTE: do_GET is handled by SimpleHTTPRequestHandler, this just defines do_POST
@@ -190,20 +191,15 @@ def device_xml2xhtml(node, device_id=None, device_name=None):
 
 
 # Start a single global CloudBridge instance, but don't automatically start it yet
-bridge = CloudBridge('./', 8001)
+bridge = CloudBridge('./cloud', 8001)
 
-def run_daemon():
-    pid = os.fork()
-    if pid == 0:
-        # de-activate stdout from SimpleHTTP
-        bridge.run()
-    else:
-        print 'Starting cloudbridge server...'
-        return pid
-
+def run():
+    # de-activate stdout from SimpleHTTP
+    bridge.run()
+    
 
 if __name__ == '__main__':
-    run_daemon()
+    run()
 
 
 
