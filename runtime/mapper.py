@@ -8,7 +8,7 @@ import xmlrpclib
 import sys
 
 MAPPER_PORT = 44000
-
+MAPPER_ADDR = 'http://localhost:%d' % MAPPER_PORT
 
 ###################### Mapper Classes ##########################################
 

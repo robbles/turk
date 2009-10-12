@@ -1,212 +1,62 @@
-#! /usr/bin/python
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+untitled.py
 
+Created by Rob O'Dwyer on 2009-10-08.
+Copyright (c) 2009 Turk Innovations. All rights reserved.
+"""
+
+import sys
 import os
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import cgi
+from urllib2 import urlopen
 from xml.dom.minidom import parseString
-import string
-import xmlrpclib
-from socket import error as socket_error
 
+#TURK_CONFIG_SERVER = 'http://config.turkinnovations.com/%s'
+TURK_CONFIG_SERVER = 'http://localhost/%s'
+# Time in seconds between each server poll
+POLL_DELAY = 10
 
-MAPPER_ADDR = 'http://localhost:44000'
-
-class CloudBridge:
+class Bridge(object):
     """
-    Allows access to other Turk systems daemons through HTTP requests, and 
-    periodically provides the Turk cloud with information about connected gadgets,
-    current mappings, and system status
-
-    Includes a synchronous handler for HTTP requests ( from local web interfaces / gadgets )
+    Periodically checks the Turk server for updates to configuration, running apps, etc.
+    Also sends any relevant platform or app data to the server for processing.
     """
-
-    def __init__(self, basedir, server_port):
-        """
-        basedir -- The main Turk Core directory. Should contain a webif folder
-            with all html/css/images if served by this program
-        server_port -- the port to start the HTTP server on
-        """
-        self.basedir = basedir
-        self.server_port = server_port
-        self.mapper = xmlrpclib.ServerProxy(MAPPER_ADDR)
-        os.chdir(basedir)
-        self.http_server = HTTPServer(('', server_port), BridgeHTTPHandler)
-
+    def __init__(self, poll_delay=POLL_DELAY):
+        self.poll_delay = poll_delay
+        
     def run(self):
-        print 'Bridge: starting HTTP server on port %d' % self.server_port
-        self.http_server.serve_forever()
-
-    def get_device_list(self):
-        """ Returns the list of devices and their inputs/outputs """
-        return self.db.execute('select * from devices').fetchall()
-
-    def get_mapping_list(self):
-        """ Returns all currently active mappings """
-        return self.db.execute('select input_device,input_name,output_device,output_name from mappings').fetchall()
-
-    def add_mapping(self, input_device, input_name, output_device, output_name):
-        """ Adds a new mapping to the database """
-        # Do the mapping through the mapping daemon to ensure consistency
-        self.mapper.make_mapping(input_device, input_name, output_device, output_name)
-
-    def remove_mapping(self, input_device, input_name, output_device, output_name):
-        """ Removes a specific mapping from the database """
-        self.db.execute("""delete from mappings where input_device=? and input_name=? and output_device=?
-                           and output_name=?""",(input_device, input_name, output_device, output_name))
-
-    def remove_all_mappings(self, device, name):
-        self.db.execute("""delete from mappings where input_device=? and input_name=?""", (device, name))
-        self.db.execute("""delete from mappings where output_device=? and output_name=?""", (device, name))
-
-    def log(msg):
-        pass
-
-
-
-class BridgeHTTPHandler(SimpleHTTPRequestHandler):
-    """
-    An HTTP handler for the cloud bridge that is used by the Web Interface.
-    Since it runs a basic webserver in 'cloud/' and exports data in XML and JSON, it can
-    be used to build alternative user interfaces to the platform.
-
-    NOTE: do_GET is handled by SimpleHTTPRequestHandler, this just defines do_POST
-    """
-    #TODO: Actually support JSON ;P
-    #TODO: Return the web interface as XML, and use an XSLT stylesheet defined in the request
-
-    def do_POST(self):
-        # Parse the form data posted
-        form = cgi.FieldStorage(fp=self.rfile, 
-                                headers=self.headers,
-                                environ={'REQUEST_METHOD':'POST',
-                                         'CONTENT_TYPE':self.headers['Content-Type']})
-
-        #self.wfile.write('Client: %s\n' % str(self.client_address))
-        self.log_message('\n\n[POST]: Path: %s' % self.path)
-
-        self.log_message(form)
-
+        while 1:
+            newconfig = fetch_data()
+            if newconfig:
+                self.config = newconfig
+            time.sleep(self.poll_delay)
+            
+    def fetch_data(self):
         try:
-            # Send back an xhtml-formatted list of devices
-            if self.path.endswith('/devices'):
-                self.log_message('Request for current devices received - sending back listing')
-                self.send_response(200)
-                self.end_headers()
-                self.wfile.write(self.get_devices())
-
-            # Send back an xhtml-formatted list of device IO mappings
-            elif self.path.endswith('/mappings'):
-                self.log_message('Request for current device mappings received')
-                self.send_response(200)
-                self.end_headers()
-                mappings = self.get_mappings().next()
-                self.log_message('sending \'%s\'' % mappings)
-                self.wfile.write(mappings)
-
-            elif self.path.endswith('/map'):
-                self.log_message('Request for new device mapping received')
-                self.log_message('input: %s.%s' % (form['input_device'].value, form['input_name'].value))
-                self.log_message('output: %s.%s' % (form['output_device'].value, form['output_name'].value))
-                self.send_response(200)
-                self.end_headers()
-                bridge.add_mapping(int(form['input_device'].value),
-                                   form['input_name'].value,
-                                   int(form['output_device'].value),
-                                   form['output_name'].value)
-
-            elif self.path.endswith('/unmap'):
-                self.log_message('Request to remove device mapping received')
-                self.log_message('device: %s  name: %s' % (form['device'].value, form['name'].value))
-                bridge.remove_all_mappings(int(form['device'].value), form['name'].value)
-                self.send_response(200)
-                self.end_headers()
-
+            raw_config = urlopen(TURK_CONFIG_SERVER % 'config/all.xml')
+            config = parseString(raw_config)
         except Exception, e:
-            self.log_message(e)
-
-
-    def get_devices(self):
-        """
-        Fetches a list of the current active devices from CloudBridge and formats in XHTML
-        """
-        devices = bridge.get_device_list()
-        return ''.join([''.join(list(device_xml2xhtml(parseString(device[2]).firstChild, device[0], device[1]))) for device in devices])
-
-
-    def get_mappings(self, mappings=0):
-        """
-        Fetches the list of current mappings and returns as xml.
-        This is a generator function, so next() should be used
-        """
-        # Converts SQL result into xml <mappinglist>
-        if mappings != 0:
-            yield '<mappinglist>'
-            for mapping in mappings:
-                yield mapping_template.substitute(input_device=mapping[0],
-                                                  input_name=mapping[1],
-                                                  output_device=mapping[2],
-                                                  output_name=mapping[3])
-            yield '</mappinglist>'
-
-        # Calls itself and turns all mappings into one big string
-        else:
-            mappings = bridge.get_mapping_list()
-            yield ''.join(self.get_mappings(mappings))
-
-    # Override the default logging behaviour
-    def log_message(self, format, *args):
+            print 'Failed to fetch config:', e
+            return None
+        
+        
+class AppConfig(object):
+    """
+    Allows apps to easily query their configuration based on the most recently fetched data
+    """
+    def __init__(self, app_id):
+        # Get the config from the recently fetched server data
+    def refresh(self):
         pass
+    def __getitem__(self, key):
+        return 'a config item'
 
-
-
-""" Mapping template """
-mapping_template = string.Template("""<mapping><input id="${input_device}" name="${input_name}" /><output id="${output_device}" name="${output_name}" /></mapping>""")
-
-
-# Translating xml data to XHTML for browser awesomeness
-device_template = string.Template("""<div class="device" id="${device_id}"><div class="deviceheader"><div class="devicename">${device_name}</div><div class="device_id">${device_id}</div></div><div class="deviceIO">""")
-
-input_template = string.Template("""<div class="deviceinput"><div class="inputname ${name}">$name</div></div>""")
-output_template = string.Template("""<div class="deviceoutput"><div class="outputname ${name}">$name</div></div>""")
-
-def device_xml2xhtml(node, device_id=None, device_name=None):
-    if node.nodeName == 'interfaces':
-        yield device_template.substitute(locals())
-        for child in node.childNodes:
-            for translated in device_xml2xhtml(child):
-                yield translated
-        yield '</div></div>'
-    elif node.nodeName == 'input':
-        yield input_template.substitute(name=node.getAttribute('name'))
-    elif node.nodeName == 'output':
-        yield output_template.substitute(name=node.getAttribute('name'))
-    return
-
-
-
-
-
-
-
-
-# Start a single global CloudBridge instance, but don't automatically start it yet
-bridge = CloudBridge('./cloud', 8001)
 
 def run():
-    # de-activate stdout from SimpleHTTP
-    bridge.run()
-    
+	pass
+
 
 if __name__ == '__main__':
-    run()
-
-
-
-
-
-
-
-
-
+	run()
 

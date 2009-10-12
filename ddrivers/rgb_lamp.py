@@ -4,10 +4,11 @@ import time
 import struct
 from xml.dom.minidom import parseString
 import xmlrpclib
+from turkcore.runtime.mapper import MAPPER_ADDR
 
 DRIVER_ID = 6
+# TODO: import this or get from config instead of specifying
 ZIGBEE_ADDR = "localhost"
-MAPPER_ADDR = 'http://localhost:44000'
 
 description = """
 <interfaces>

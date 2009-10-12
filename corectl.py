@@ -2,9 +2,12 @@
 
 import os, sys
 import signal
-import subprocess
+import multiprocessing
 
-def start():
+import turkcore.runtime.mapper as mapper
+import turkcore.runtime.spawner as spawner
+
+def launch():
     """
     Starts the Turk Core as a group of processes. Logs each started daemon's PID
     in a file, so that a later call to stop() can shut them all down.
@@ -21,36 +24,41 @@ def start():
 
     pids = open('turkcore.pid', 'w')
 
-    mapper = subprocess.Popen(['runtime/mapper.py'],
-                              shell=False,
-                              stdout=sys.stdout,
-                              close_fds=True)
-    pids.write('%d\n' % mapper.pid)
+    try:
+        mapper_process = multiprocessing.Process(target=mapper.run)
+        mapper_process.start()
+        pids.write('%d\n' % mapper_process.pid)
 
-    spawner = subprocess.Popen(['runtime/spawner.py'],
-                               shell=False,
-                               stdout=sys.stdout,
-                               close_fds=True)
-    pids.write('%d\n' % spawner.pid)
+        spawner_process = multiprocessing.Process(target=spawner.run)
+        spawner_process.start()
+        pids.write('%d\n' % spawner_process.pid)
 
-    # bridge = subprocess.Popen(['cloud/bridge.py'],
-    #                                 shell=False,
-    #                                 stdout=sys.stdout,
-    #                                 close_fds=True)
-    # pids.write('%d\n' % bridge.pid)
+        pids.close()
 
-    pids.close()
-
-    print 'Turk Core started...\n'
+        print 'Turk Core started...\n'
+    except Exception, e:
+        print 'Error starting Turk Core:', e
+        pids.close()
+        os.unlink('turkcore.pid')
 
 
+def start():
+    """
+    Starts the Turk Core as a group of processes controlled by one master
+    process
+    """
+    master = os.fork()
+    if not master:
+        launch()
+    else:
+        print 'Starting Turk Core...'
 
 def stop():
     """
     Reads the PID file left by start() and sends SIGTERM to all of the daemon
     processes that make up the core
     """
-
+    print 'Stopping Turk Core...'
     core_dir = os.path.dirname(sys.argv[0])
     os.chdir(core_dir)
     pidfile = 'turkcore.pid'
@@ -68,6 +76,13 @@ def stop():
     os.unlink(pidfile)
     pids.close()
 
+def flush():
+    """Deletes any data associated with improperly stopped Turk Core"""
+    if os.path.exists('turkcore.pid'):
+        print 'Removing turkcore.pid...'
+        os.unlink('turkcore.pid')
+    else:
+        print 'No turkcore.pid file to remove!'
 
 def terminate(pid):
     try:
@@ -88,7 +103,8 @@ def run():
         exit(-1)
 
     {'start':start,
-     'stop':stop}[cmd]()
+     'stop':stop,
+     'flush':flush}[cmd]()
 
 
 if __name__ == '__main__':
