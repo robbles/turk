@@ -1,116 +1,76 @@
 #!/usr/bin/python
 """"
-The driver-spawner creates a new instance of a driver for each device,
-by looking it up in a sqlite database. The turk server is queried for 
-unknown IDs, which are then added to the database
+The driver-spawner creates a new instance of a driver for each device.
+The turk server is queried to get the driver for each device.
 """
 #TODO: Implement proper management of driver processes
 # i.e. keep track of drivers already running by device_id
 
-import socket
 import sys
 import struct
-from sqlite3 import dbapi2 as sqlite
-import signal
 import urllib2
 from xml.dom.minidom import parseString
 import string
 import subprocess
 import os
+import gobject
+import dbus
+import dbus.mainloop.glib
 
 TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
 TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
 
-SPAWNER_PORT = 45000
-
-def test(device_id, startspawner=0, port=SPAWNER_PORT):
-    if startspawner == 1:
-        sp = DriverSpawner()
-        sp.start()
-    else:
-        sp = 0
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    msg = struct.pack('>QQ', 0x0013A2004052DA9A, device_id)
-    s.sendto(msg, ('localhost', port))
-    s.close()
-    if sp:
-        sp.shutdown()
-
-
 class DriverSpawner:
-    def __init__(self, port=SPAWNER_PORT, drivers_db='drivers.db'):
-        self.s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        print "Spawner: listening for devices on UDP port %d" % port
-        self.s.bind(('', port))
-        self.s.settimeout(3)
-        self.running = 1
-        self.driver_list = []
+    
+    def __init__(self):
+        self.managed_drivers = []
+        self.known_devices = []
+        
+    def new_packet(self, rf_data, hw_addr):
+        print 'Spawner: inspecting a packet of %d bytes from 0x%X' % (len(rf_data), hw_addr)
 
-    def run(self):
-        self.db = sqlite.connect('drivers.db')
-        while self.running:
-            try:
-                buffer, addr = self.s.recvfrom(1024)
-            except socket.timeout:
-                continue
-            except Exception, err:
-                break
-
-            device_addr, device_id = struct.unpack('>QQ', buffer[0:16])
-            print "Spawner: received a driver request from xbee 0x%X with device_id %u, from %s" % (device_addr, device_id, addr)
-
-            if addr[1] != 1:
-                print 'Spawner: warning, source port is not 0x0001 - may not be a valid Turk Device Start Packet'
-
-            # Get the driver's path from the db
-            results = self.fetch_path(device_id)
-            
-            #TODO: need to test whether driver should be spawned multiple times,
-            # or notified to respawn itself instead, or managed completely by spawner
-
-            if results != None:
-                try:
-                    drivername, driverargs = results[2], results[3]
-                    print "starting driver %s" % drivername
-                    args = ['./' + drivername, str(device_id), "0x%X" % device_addr]
-                    args.extend(driverargs.split())                    
-                    self.driver_list.append(subprocess.Popen(args, stdout=sys.stdout))
-                except OSError, e:
-                    print 'failed starting driver: %s' % e
-
-        # Shutdown was called, close all drivers and sockets
-        print "Spawner: interrupted, shutting down..."
-        for driver in self.driver_list:
-            driver.terminate()
-        self.s.close()
-        self.db.close()
-        print
-
-    def shutdown(self, *args):
-        self.running = 0
-
-    def fetch_path(self, device_id):
         try:
-            results = self.db.execute('select * from drivers where device_id = ? limit 1', (device_id,)).fetchall()
-            if results:
-                return results[0]
-            else:
-                print "Spawner: no driver found for %s, trying to GET from server" % (device_id)
-                return self.fetch_driver(device_id)
-        except Exception, e:
-            print "Failed getting driver"
-            print e
-            return None
+            # Strip off UDP header - TODO: check to make sure it's a valid request
+            rf_data = str(rf_data)
+            
+            if (hw_addr not in self.known_devices) and rf_data.startswith('SPAWN') and (len(rf_data) == 13):
+                # Unpack data
+                commmand, device_id = struct.unpack('>5sQ', rf_data)
+                print "Spawner: received a driver request from xbee 0x%X with device_id %d" % (hw_addr, device_id)
 
-    #TODO: check for 404s and 500s and do something about it
-    # and also 418s - the driver may be a teapot
+                # Get the driver from the server and attempt to run it
+                self.run_driver(device_id, hw_addr)
+
+        except Exception, e:
+            print e
+        
+
+    def run_driver(self, device_id, hw_addr):
+        try:
+            driver_info = self.fetch_driver(device_id)
+            if driver_info:
+                drivername, driverargs = driver_info
+                print "starting driver %s" % drivername
+                env = {'CONTEXT':'SPAWNER',
+                'DEVICE_ADDRESS':'%X' % hw_addr,
+                'DEVICE_ID':str(device_id),
+                'ARGUMENTS':driverargs}
+                self.managed_drivers.append(subprocess.Popen(drivername, stdout=sys.stdout, env=env))
+                self.device_list.append()
+        except OSError, e:
+            print 'failed starting driver: %s' % e
+
+
     def fetch_driver(self, device_id):
         try:
             # Just assume driver_id == device_id for now
             driver_id = device_id
             addr = TURK_CLOUD_DRIVER_INFO.substitute(driver_id=driver_id)
             driver_info = parseString(urllib2.urlopen(addr).read())
-            driver = driver_info.getElementsByTagName('driver')[0] 
+            driver = driver_info.getElementsByTagName('driver')[0]
+            if not driver:
+                print 'No driver for %d' % device_id
+                return None
             filename = driver.getAttribute('file')
             title = driver.getAttribute('title')
             if driver.hasAttribute('argument'):
@@ -120,17 +80,16 @@ class DriverSpawner:
             print "fetched driver info, driver's name is %s" % title
             print "fetching: " + TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename)
             driverdata = urllib2.urlopen(TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
-            filename = 'ddrivers/%s' % filename
-            driverfile = open(filename, 'w')
-            driverfile.write(driverdata.read())
-            driverfile.close()
-            # TODO: figure out permissions so drivers can't fuck everything up
-            os.chmod(filename, 0755)
-            self.db.execute('insert into drivers (device_id, driver_id, location, arguments) values (?, ?, ?, ?)',
-                            (int(device_id), int(driver_id), filename, args))
-            self.db.commit()
-            print "saved driver data successfully"
-            return [device_id, driver_id, filename, args]
+            filename = 'drivers/%s' % filename
+            if not os.path.exists(filename):
+                driverfile = open(filename, 'wB')
+                driverfile.write(driverdata.read())
+                driverfile.close()
+                os.chmod(filename, 0755)
+                print "saved driver data successfully"
+            else:
+                print "Driver file already exists! Leaving original"
+            return (filename, args)
         except urllib2.HTTPError, err:
             print "Couldn't fetch driver resource - HTTP error %d" % err.getcode()
             return None
@@ -146,14 +105,27 @@ def run(daemon=False):
     if daemon = True, forks into the background first
     """
     if daemon:
-        import os
         pid = os.fork()
         if pid:
             return pid
+
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    
     spawner = DriverSpawner()
-    # Shut down the mapper properly if we receive a TERM signal
-    signal.signal(signal.SIGTERM, spawner.shutdown)
-    spawner.run()
+    
+    try:
+        bus.add_signal_receiver(spawner.new_packet,
+                                dbus_interface='org.turkinnovations.xbeed.XBeeInterface',
+                                signal_name="RecievedData",
+                                byte_arrays=True)
+    except dbus.DBusException:
+        traceback.print_exc()
+        sys.exit(1)
+
+    loop = gobject.MainLoop()
+    loop.run()
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == '--daemon':

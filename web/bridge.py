@@ -11,9 +11,10 @@ import sys
 import os
 from urllib2 import urlopen
 from xml.dom.minidom import parseString
+from time import sleep
 
 #TURK_CONFIG_SERVER = 'http://config.turkinnovations.com/%s'
-TURK_CONFIG_SERVER = 'http://localhost/%s'
+TURK_CONFIG_SERVER = 'http://localhost:8888/%s'
 # Time in seconds between each server poll
 POLL_DELAY = 10
 
@@ -26,35 +27,57 @@ class Bridge(object):
         self.poll_delay = poll_delay
         
     def run(self):
-        while 1:
-            newconfig = fetch_data()
+        while True:
+            newconfig = self.fetch_data()
             if newconfig:
                 self.config = newconfig
-            time.sleep(self.poll_delay)
+            sleep(self.poll_delay)
             
     def fetch_data(self):
+        """
+        GETs the configuration data for this Turk platform from the server. Parses the
+        XML into a dictionary form for easy querying by Apps/Devices later on. 
+        """
         try:
-            raw_config = urlopen(TURK_CONFIG_SERVER % 'config/all.xml')
+            print 'fetching', TURK_CONFIG_SERVER % 'config/all.xml'
+            raw_config = urlopen(TURK_CONFIG_SERVER % 'config/all.xml').read()
             config = parseString(raw_config)
         except Exception, e:
             print 'Failed to fetch config:', e
             return None
+         
+    def convert_XML(xml_node, storage={}):
+        """ Converts the XML DOM tree into a dictionary format"""
+        if xml_node.nodeName not in storage:
+            storage[xml_node.nodeName] = 
         
         
-class AppConfig(object):
+        
+class AppConfig(dict):
     """
     Allows apps to easily query their configuration based on the most recently fetched data
     """
-    def __init__(self, app_id):
-        # Get the config from the recently fetched server data
+    _apps = {}
+    def __new__(cls, app_id=None):
+        """
+        If app_id is given, try to return the configuration for that app. Otherwise,
+        construct a new AppConfig ready to be constructed with XML data.
+        """
+        if app_id:
+            return AppConfig._apps[app_id]
+        else:
+            return dict.__new__(cls, app_id)
+            
     def refresh(self):
         pass
+        
     def __getitem__(self, key):
         return 'a config item'
 
 
 def run():
-	pass
+	bridge = Bridge()
+	bridge.run()
 
 
 if __name__ == '__main__':
