@@ -1,5 +1,5 @@
 #!/usr/bin/python
-""""
+"""
 The driver-spawner creates a new instance of a driver for each device.
 The turk server is queried to get the driver for each device.
 """
@@ -15,16 +15,23 @@ import subprocess
 import os
 import gobject
 import dbus
+import dbus.service
 import dbus.mainloop.glib
+
+TURK_SPAWNER_SERVICE = "org.turkinnovations.core.Spawner"
+TURK_SPAWNER_INTERFACE = "org.turkinnovations.core.Spawner"
 
 TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
 TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
 
-class DriverSpawner:
+class DriverSpawner(dbus.service.Object):
     
     def __init__(self):
+        bus_name = dbus.service.BusName(TURK_SPAWNER_SERVICE, dbus.SystemBus())
+        dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = []
         self.known_devices = []
+        self.SpawnerStarted()
         
     def new_packet(self, rf_data, hw_addr):
         print 'Spawner: inspecting a packet of %d bytes from 0x%X' % (len(rf_data), hw_addr)
@@ -33,7 +40,7 @@ class DriverSpawner:
             # Strip off UDP header - TODO: check to make sure it's a valid request
             rf_data = str(rf_data)
             
-            if (hw_addr not in self.known_devices) and rf_data.startswith('SPAWN') and (len(rf_data) == 13):
+            if rf_data.startswith('SPAWN') and (len(rf_data) == 13):
                 # Unpack data
                 commmand, device_id = struct.unpack('>5sQ', rf_data)
                 print "Spawner: received a driver request from xbee 0x%X with device_id %d" % (hw_addr, device_id)
@@ -52,11 +59,14 @@ class DriverSpawner:
                 drivername, driverargs = driver_info
                 print "starting driver %s" % drivername
                 env = {'CONTEXT':'SPAWNER',
-                'DEVICE_ADDRESS':'%X' % hw_addr,
-                'DEVICE_ID':str(device_id),
-                'ARGUMENTS':driverargs}
+                       'DEVICE_ADDRESS':'%X' % hw_addr,
+                       'DEVICE_ID':str(device_id),
+                       'ARGUMENTS':driverargs}
                 self.managed_drivers.append(subprocess.Popen(drivername, stdout=sys.stdout, env=env))
-                self.device_list.append()
+                self.known_devices.append(device_id)
+
+                # Emit a signal indicating that driver has been started
+                self.NewDriver(drivername, 'device.png')
         except OSError, e:
             print 'failed starting driver: %s' % e
 
@@ -97,6 +107,13 @@ class DriverSpawner:
             print err
             return None
         
+    @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='')
+    def SpawnerStarted(self):
+        print 'Spawner Started'
+
+    @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='ss')
+    def NewDriver(self, driver_name, driver_image):
+        print 'new driver found: name %s, image file %s' % (driver_name, driver_image)
 
 
 def run(daemon=False):
