@@ -97,7 +97,7 @@ class TwitterFetcher(dbus.service.Object):
     def error(self, message):
         """ Called when an error/exception occurs. Emits a signal for any relevant
             system management daemons and loggers """
-        pass
+        print message
         
 
 # Run as a standalone driver

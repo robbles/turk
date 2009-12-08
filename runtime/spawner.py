@@ -46,7 +46,10 @@ class DriverSpawner(dbus.service.Object):
                 print "Spawner: received a driver request from xbee 0x%X with device_id %d" % (hw_addr, device_id)
 
                 # Get the driver from the server and attempt to run it
-                self.run_driver(device_id, hw_addr)
+                if device_id not in self.known_devices:
+                    self.run_driver(device_id, hw_addr)
+                else:
+                    print 'driver for device %d already started' % device_id
 
         except Exception, e:
             print e
@@ -66,6 +69,7 @@ class DriverSpawner(dbus.service.Object):
                 self.known_devices.append(device_id)
 
                 # Emit a signal indicating that driver has been started
+                # TODO: check for customized driver/device icon
                 self.NewDriver(drivername, 'device.png')
         except OSError, e:
             print 'failed starting driver: %s' % e
