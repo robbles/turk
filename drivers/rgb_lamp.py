@@ -40,15 +40,15 @@ class RGBLamp(dbus.service.Object):
                                 signal_name="RecievedData",
                                 byte_arrays=True)
 
-        self.bus.add_signal_receiver(self.new_config, path='/ConfigData/%d' % (DRIVER_ID))
+        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/RGB_Lamp%d' % (self.device_id))
 
-        print 'RGB Lamp: listening for %s' % ('/ConfigData/%d' % (DRIVER_ID))
+        print 'RGB Lamp: listening for %s' % ('/Bridge/ConfigFiles/RGB_Lamp%d' % (self.device_id))
 
     def receive_data(self, rf_data, hw_addr):
         """ Called when device sends us data. Might happen when device is reset """
         print 'RGB Lamp: Received %d bytes from device' % len(rf_data)
         
-    def new_config(self, xml):
+    def new_config(self, driver, xml, app):
         print 'new xml config received: %s' % xml
         tree = parseString(xml)
         try:
