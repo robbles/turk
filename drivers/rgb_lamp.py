@@ -28,7 +28,7 @@ TURK_BRIDGE = "org.turkinnovations.core.Bridge"
 class RGBLamp(dbus.service.Object):
     def __init__(self, device_id, device_addr):
         dbus.service.Object.__init__(self, dbus.SessionBus(),
-                                     '/Drivers/RGB_Lamp/%X' % device_addr)
+                                     '/Drivers/RGBLamp/%X' % device_addr)
         self.device_id = device_id
         self.device_addr = device_addr
         self.bus = dbus.SystemBus()
@@ -40,9 +40,9 @@ class RGBLamp(dbus.service.Object):
                                 signal_name="RecievedData",
                                 byte_arrays=True)
 
-        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/RGB_Lamp%d' % (self.device_id))
+        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/%d' % (self.device_id))
 
-        print 'RGB Lamp: listening for %s' % ('/Bridge/ConfigFiles/RGB_Lamp%d' % (self.device_id))
+        print 'RGB Lamp: listening for %s' % ('/Bridge/ConfigFiles/%d' % (self.device_id))
 
     def receive_data(self, rf_data, hw_addr):
         """ Called when device sends us data. Might happen when device is reset """

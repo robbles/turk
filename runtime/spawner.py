@@ -18,11 +18,7 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 
-TURK_SPAWNER_SERVICE = "org.turkinnovations.core.Spawner"
-TURK_SPAWNER_INTERFACE = "org.turkinnovations.core.Spawner"
-
-TURK_CLOUD_DRIVER_INFO = string.Template('http://drivers.turkinnovations.com/drivers/${driver_id}.xml')
-TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/files/drivers/${filename}')
+from turkcore.namespace import *
 
 class DriverSpawner(dbus.service.Object):
     
@@ -30,11 +26,13 @@ class DriverSpawner(dbus.service.Object):
         bus_name = dbus.service.BusName(TURK_SPAWNER_SERVICE, dbus.SystemBus())
         dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = []
+        self.managed_workers = []
         self.known_devices = []
+        self.known_apps = []
         self.SpawnerStarted()
         
-    def new_packet(self, rf_data, hw_addr):
-        print 'Spawner: inspecting a packet of %d bytes from 0x%X' % (len(rf_data), hw_addr)
+    def new_packet(self, rf_data, device_addr):
+        print 'Spawner: inspecting a packet of %d bytes from 0x%X' % (len(rf_data), device_addr)
 
         try:
             # Strip off UDP header - TODO: check to make sure it's a valid request
@@ -43,11 +41,11 @@ class DriverSpawner(dbus.service.Object):
             if rf_data.startswith('SPAWN') and (len(rf_data) == 13):
                 # Unpack data
                 commmand, device_id = struct.unpack('>5sQ', rf_data)
-                print "Spawner: received a driver request from xbee 0x%X with device_id %d" % (hw_addr, device_id)
+                print "Spawner: received a driver request from xbee 0x%X with device_id %d" % (device_addr, device_id)
 
                 # Get the driver from the server and attempt to run it
                 if device_id not in self.known_devices:
-                    self.run_driver(device_id, hw_addr)
+                    self.run_driver(device_id, device_addr)
                 else:
                     print 'driver for device %d already started' % device_id
 
@@ -55,14 +53,14 @@ class DriverSpawner(dbus.service.Object):
             print e
         
 
-    def run_driver(self, device_id, hw_addr):
+    def run_driver(self, device_id, device_addr):
         try:
             driver_info = self.fetch_driver(device_id)
             if driver_info:
                 drivername, driverargs = driver_info
                 print "starting driver %s" % drivername
                 env = {'CONTEXT':'SPAWNER',
-                       'DEVICE_ADDRESS':'%X' % hw_addr,
+                       'DEVICE_ADDRESS':'%X' % device_addr,
                        'DEVICE_ID':str(device_id),
                        'ARGUMENTS':driverargs}
                 self.managed_drivers.append(subprocess.Popen(drivername, stdout=sys.stdout, env=env))
@@ -74,12 +72,27 @@ class DriverSpawner(dbus.service.Object):
         except OSError, e:
             print 'failed starting driver: %s' % e
 
+    def run_worker(self, worker_id, app_id):
+        try:
+            worker_info = self.fetch_driver(worker_id)
+            if worker_info:
+                workername, workerargs = worker_info
+                print "starting worker %s" % workername
+                env = {'CONTEXT':'SPAWNER',
+                       'APP_ID':str(app_id),
+                       'ARGUMENTS':workerargs}
+                self.managed_workers.append(subprocess.Popen(workername, stdout=sys.stdout, env=env))
+                self.known_apps.append(worker_id)
+
+                # Emit a signal indicating that worker has been started
+                # TODO: check for customized worker/device icon
+                self.NewDriver(workername, 'worker.png')
+        except OSError, e:
+            print 'failed starting worker: %s' % e
 
     def fetch_driver(self, device_id):
         try:
-            # Just assume driver_id == device_id for now
-            driver_id = device_id
-            addr = TURK_CLOUD_DRIVER_INFO.substitute(driver_id=driver_id)
+            addr = TURK_CLOUD_DRIVER_INFO.substitute(id=device_id)
             driver_info = parseString(urllib2.urlopen(addr).read())
             driver = driver_info.getElementsByTagName('driver')[0]
             if not driver:
@@ -110,6 +123,13 @@ class DriverSpawner(dbus.service.Object):
         except Exception, err:
             print err
             return None
+
+    def shutdown(self):
+        for driver in self.managed_drivers:
+            driver.terminate()
+        for worker in self.managed_workers:
+            worker.terminate()
+        loop.quit()
         
     @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='')
     def SpawnerStarted(self):
@@ -119,12 +139,29 @@ class DriverSpawner(dbus.service.Object):
     def NewDriver(self, driver_name, driver_image):
         print 'new driver found: name %s, image file %s' % (driver_name, driver_image)
 
+    @dbus.service.method(dbus_interface=TURK_SPAWNER_INTERFACE, in_signature='stt', out_signature='')
+    def requireService(self, type, service, app):
+        """
+        Starts a worker or driver if necessary, and returns True if the service
+        is running
+        """
+        print 'Spawner: checking for service %s' % service
+        if type == 'driver':
+            if service in self.known_devices:
+                return
+            else:
+                raise dbus.DBusException("Driver for %d unknown")
+        if type == 'worker':
+            self.run_worker(service, app)
 
+            
 def run(daemon=False):
     """
     Start Spawner as a standalone process.
     if daemon = True, forks into the background first
     """
+    import signal
+
     if daemon:
         pid = os.fork()
         if pid:
@@ -134,6 +171,7 @@ def run(daemon=False):
     bus = dbus.SystemBus()
     
     spawner = DriverSpawner()
+    signal.signal(signal.SIGTERM, spawner.shutdown)
     
     try:
         bus.add_signal_receiver(spawner.new_packet,

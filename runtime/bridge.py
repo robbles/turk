@@ -10,16 +10,21 @@ dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 from twisted.internet import glib2reactor
 glib2reactor.install()
 
-from twisted.words.protocols.jabber import client, jstrports
-from twisted.words.protocols.jabber.jid import JID
-from twisted.words.protocols.jabber import xmlstream
-from twisted.words.xish.domish import Element
-from twisted.words.xish import xpath
-from twisted.application.internet import TCPClient
-from twisted.internet import reactor
-from wokkel.subprotocols import XMPPHandler
-from wokkel.xmppim import AvailablePresence, UnavailablePresence, Presence
-from wokkel.xmppim import PresenceClientProtocol, MessageProtocol, RosterClientProtocol
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    from twisted.words.protocols.jabber import client, jstrports
+    from twisted.words.protocols.jabber.jid import JID
+    from twisted.words.protocols.jabber import xmlstream
+    from twisted.words.xish.domish import Element
+    from twisted.words.xish import xpath
+    from twisted.application.internet import TCPClient
+    from twisted.internet import reactor
+    from wokkel.subprotocols import XMPPHandler
+    from wokkel.xmppim import AvailablePresence, UnavailablePresence, Presence
+    from wokkel.xmppim import PresenceClientProtocol, MessageProtocol, RosterClientProtocol
+
+from turkcore.namespace import *
 
 server =    ('macpro.local', 5222)
 thorax =    JID('thorax@macpro.local')
@@ -27,13 +32,6 @@ app =       JID('app@macpro.local')
 platform =  JID('platform@macpro.local')
 jid =       JID("platform@macpro.local")
 password =  'password'
-debug = False
-daemon = False
-
-TURK_BRIDGE_SERVICE = "org.turkinnovations.core.Bridge"
-TURK_BRIDGE_INTERFACE = "org.turkinnovations.core.Bridge"
-TURK_CONFIG_INTERFACE = "org.turkinnovations.core.Configuration"
-TURK_CONFIG_NAMESPACE = "http://turkinnovations.com/protocol/1.0/config"
 
 
 def debug(func):
@@ -70,20 +68,25 @@ class Bridge(dbus.service.Object):
         # Setup config files
         self.configs = {}
 
-    @dbus.service.method(dbus_interface=TURK_BRIDGE_INTERFACE, in_signature='sss', out_signature='')
-    def PublishUpdate(self, utype, update, source):
+        # Init worker subscriptions
+        self.subscriptions = {}
+
+
+    @dbus.service.method(dbus_interface=TURK_BRIDGE_INTERFACE,
+                         in_signature='sss', out_signature='')
+    def PublishUpdate(self, type, update, source):
         """
         Publishes a new update via HTTP to all apps that have registered to
         this data source
         """
 
     @debug
-    def updateConfig(self, utype, driver, config, app):
+    def updateConfig(self, type, driver, config, app):
         """
         Associates a new config entry with it's driver name, or updates
         the corresponding driver config if it already exists
         """
-        print 'updateConfig: utype:%s driver:%s config:%s app:%s' % (utype, driver, config, app)
+        print 'updateConfig: type:%s driver:%s config:%s app:%s' % (type, driver, config, app)
         if driver in self.configs:
             self.configs[driver].NewDriverConfig(driver, config, app)
         else:
@@ -95,14 +98,27 @@ class Bridge(dbus.service.Object):
         Registers app to be notified of events coming from service
         """
         print 'registerObserver: service:%s app:%s' % (service, app)
+        if service in self.subscriptions:
+            self.subscriptions[service].append(app)
+        else:
+            self.subscriptions[service] = [app]
 
     @debug
-    def requireService(self, service, app):
+    def requireService(self, type, service, app):
         """
         Notifies Spawner that service needs to be started or already running.
         Forwards any error notifications to the server through XMPP
         """
         print 'requireService: service:%s app:%s' % (service, app)
+        try: 
+            spawner = self.bus.get_object(TURK_SPAWNER_SERVICE, '/Spawner')
+            spawner.requireService(type, service, app, 
+                    reply_handler=lambda:None, error_handler=self.serviceFail)
+        except dbus.DBusException, e:
+            print e
+
+    def serviceFail(self, exception):
+        print 'Bridge: failed to start require service: %s' % exception
 
     @dbus.service.signal(dbus_interface=TURK_BRIDGE_INTERFACE, signature='')
     def BridgeStarted(self):
@@ -198,9 +214,11 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         """
         for service in xpath.queryForNodes(self.REQUIRE + "/service", message):
             require = service.parent
-            app = require['app']
-            print 'service %s required for app %s' % (str(service), app)
-            self.bridge.requireService(str(service), app)
+            id = int(str(service))
+            app = int(require['app'])
+            type = service['type']
+            print 'service %s required for app %s' % (id, app)
+            self.bridge.requireService(type, id, app)
 
     @debug
     def onRegister(self, message):
@@ -209,9 +227,10 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         """
         for service in xpath.queryForNodes(self.REGISTER + "/service", message):
             register = service.parent
-            app = register['app']
-            print 'app %s registering to service %s' % (app, str(service))
-            self.bridge.registerObserver(str(service), app)
+            id = int(str(service))
+            app = int(register['app'])
+            print 'app %s registering to service %s' % (id, app)
+            self.bridge.registerObserver(id, app)
 
     @debug
     def onUpdate(self, message):
@@ -219,59 +238,24 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         Called when Turk update element(s) are received
         """
         for update in xpath.queryForNodes(self.UPDATE, message):
-            utype = update['type']
-            dest = update['to']
-            source = update['from']
-            print 'got a update of type %s' % utype
-            self.bridge.updateConfig(utype, dest, str(update), source)
+            type = update['type']
+            dest = int(update['to'])
+            source = int(update['from'])
+            print 'got a update of type %s' % type
+            self.bridge.updateConfig(type, dest, str(update), source)
 
     @debug
     def subscribeReceived(self, entity):
         """
         Subscription request was received.
+        Approve the request automatically by sending a 'subscribed' presence back
         """
-        self.subscribed(JID(entity['from']))
-
-    @debug
-    def probeReceived(self, presence):
-        """
-        Probe presence was received.
-        """
-
-    @debug
-    def availableReceived(self, entity, show=None, statuses=None, priority=0):
-        """
-        Available presence was received.
-        """
-
-    @debug
-    def unavailableReceived(self, entity, statuses=None):
-        """
-        Unavailable presence was received.
-        """
-
-    @debug
-    def subscribedReceived(self, entity):
-        """
-        Subscription approval confirmation was received.
-        """
-
-    @debug
-    def unsubscribedReceived(self, entity):
-        """
-        Unsubscription confirmation was received.
-        """
-
-    @debug
-    def unsubscribeReceived(self, entity):
-        """
-        Unsubscription request was received.
-        """
+        self.subscribed(entity)
 
 
 class ConfigFile(dbus.service.Object):
     def __init__(self, bus, driver, config, app):
-        dbus.service.Object.__init__(self, bus, '/Bridge/ConfigFiles/%s' % driver)
+        dbus.service.Object.__init__(self, bus, '/Bridge/ConfigFiles/%d' % driver)
         self.driver = driver
         self.app = app
         self.config = config
@@ -279,19 +263,23 @@ class ConfigFile(dbus.service.Object):
 
     @dbus.service.signal(dbus_interface=TURK_BRIDGE_INTERFACE, signature='sss')
     def NewDriverConfig(self, driver, config, app):
+        print 'NewDriverConfig: %d %s %d' % (driver, config, app)
         self.config = config
 
-    @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE, in_signature='', out_signature='s')
+
+    @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE,
+                         in_signature='', out_signature='s')
     def GetConfig(self):
         return self.config
 
-    @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE, in_signature='', out_signature='s')
+
+    @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE,
+                         in_signature='', out_signature='s')
     def GetApp(self):
         return self.app
 
 
-
-if __name__ == '__main__':
+def run(debug=False, daemon=False):
     from sys import argv
     from os import fork
     for arg in argv[1:]:
@@ -309,4 +297,6 @@ if __name__ == '__main__':
 
 
 
+if __name__ == '__main__':
+    run()
 

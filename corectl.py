@@ -4,8 +4,9 @@ import os, sys
 import signal
 import multiprocessing
 
-import turkcore.runtime.mapper as mapper
 import turkcore.runtime.spawner as spawner
+import turkcore.runtime.bridge as bridge
+import xbeed
 
 def launch():
     """
@@ -25,13 +26,18 @@ def launch():
     pids = open('turkcore.pid', 'w')
 
     try:
-        mapper_process = multiprocessing.Process(target=mapper.run)
-        mapper_process.start()
-        pids.write('%d\n' % mapper_process.pid)
-
         spawner_process = multiprocessing.Process(target=spawner.run)
         spawner_process.start()
         pids.write('%d\n' % spawner_process.pid)
+
+        bridge_process = multiprocessing.Process(target=bridge.run)
+        bridge_process.start()
+        pids.write('%d\n' % bridge_process.pid)
+
+        xbeed_process = multiprocessing.Process(target=xbeed.main, 
+                                                args=('xbee0', '/dev/ttyS0'))
+        xbeed_process.start()
+        pids.write('%d\n' % xbeed_process.pid)
 
         pids.close()
 
@@ -71,12 +77,15 @@ def stop():
     pids = open(pidfile, 'rU')
 
     # Kill all the Turk Core processes (should be one pid per line)
-    [terminate(int(pid)) for pid in pids]
+    def destroy(pid):
+        print 'terminating pid %s' % pid
+        terminate(int(pid))
+    [destroy(pid) for pid in pids]
 
     os.unlink(pidfile)
     pids.close()
 
-def flush():
+def clean():
     """Deletes any data associated with improperly stopped Turk Core"""
     if os.path.exists('turkcore.pid'):
         print 'Removing turkcore.pid...'
@@ -104,7 +113,7 @@ def run():
 
     {'start':start,
      'stop':stop,
-     'flush':flush}[cmd]()
+     'clean':clean}[cmd]()
 
 
 if __name__ == '__main__':
