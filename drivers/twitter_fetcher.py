@@ -9,13 +9,6 @@ import twitter
 DRIVER_ID = 7
 
 """
-Max number of requests per hour, and calculated sleep time in milliseconds
-"""
-TWITTER_MAX_REQUESTS = 100.0
-SLEEP_TIME = 3600.0 / TWITTER_MAX_REQUESTS * 1000
-print SLEEP_TIME
-
-"""
 ### Sample config ###
 
 '<?xml version="1.0" encoding="UTF-8"?>
@@ -29,13 +22,17 @@ print SLEEP_TIME
 
 """
 
+# Max number of requests per hour, and calculated sleep time in milliseconds
+TWITTER_MAX_REQUESTS = 100.0
+SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
+
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
 TURK_BRIDGE = "org.turkinnovations.core.Bridge"
 
-class TwitterFetcher(dbus.service.Object):
-    def __init__(self, device_id):
-        dbus.service.Object.__init__(self, dbus.SessionBus(), '/Drivers/Twitter_Fetcher/%d' % device_id)
-        self.device_id = device_id
+class TwitterFeed(dbus.service.Object):
+    def __init__(self, app_id):
+        dbus.service.Object.__init__(self, dbus.SystemBus(), '/Workers/TwitterFeed/%d' % app_id)
+        self.app_id = app_id
         self.bus = dbus.SystemBus()
 
         self.last_id = 0
@@ -43,50 +40,53 @@ class TwitterFetcher(dbus.service.Object):
 
         self.api = twitter.Api()
 
-        self.bus.add_signal_receiver(self.new_config, path='/ConfigData/%d' % (DRIVER_ID))
+        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/%d' % self.app_id)
 
         gobject.timeout_add(SLEEP_TIME, self.poll_server)
 
-        print 'TwitterFetcher: listening for %s' % ('/ConfigData/%d' % (DRIVER_ID))
+        print 'TwitterFeed: listening for %s' % ('/Bridge/ConfigFiles/%d' % self.app_id)
 
 
     def poll_server(self):
-        if self.timeline == 'user':
-            statuses = self.api.GetUserTimeline(count=1, since_id=self.last_id)
-            if statuses:
-                self.new_data(statuses[0].text)
-                self.last_id = statuses[0].id
-        else:
-            statuses = self.api.GetPublicTimeline(since_id=self.last_id)
-            if statuses:
-                self.new_data(statuses[0].text)
-                self.last_id = statuses[0].id
-        return True
+        try:
+            if self.timeline == 'user':
+                statuses = self.api.GetUserTimeline(count=1, since_id=self.last_id)
+                if statuses:
+                    self.new_data(statuses[0].text)
+                    self.last_id = statuses[0].id
+            else:
+                statuses = self.api.GetPublicTimeline(since_id=self.last_id)
+                if statuses:
+                    self.new_data(statuses[0].text)
+                    self.last_id = statuses[0].id
+        finally:
+            return True
 
     def new_data(self, status):
-        print 'TwitterFetcher: status is now "%s"' % (status)
+        # FIXME : occasional unicode-related errors...?
+        print u'TwitterFeed: status is now "%s"' % (status)
 
-    def new_config(self, xml):
+    def new_config(self, driver, xml):
         print 'new xml config received: %s' % xml
         tree = parseString(xml)
         try:
-            timeline = tree.getElementsByTagName('timeline')[0].firstChild.nodeValue
+            timeline = tree.getElementsByTagName('timeline')[0]
             type = timeline.getAttribute('type')
             if type in ['user', '']:
-                user = timeline.getElementsByTagName('user')
+                user = timeline.getElementsByTagName('user')[0]
                 name, password = (user.attributes['name'].nodeValue, 
                                   user.attributes['password'].nodeValue)
-                self.SetCredentials(name, password)
+                self.api.SetCredentials(name, password)
                 self.timeline = 'user'
             elif type == 'global':
                 self.timeline = 'global'
             else:
                 # TODO: emit an error signal for bridge
-                print 'TwitterFetcher: unknown timeline type'
+                print 'TwitterFeed: unknown timeline type'
 
         except Exception, e:
             # TODO: emit an error signal for bridge
-            self.error('TwitterFetcher: ' + str(e))
+            self.error('TwitterFeed: ' + str(e))
             print e
         
     def run(self):
@@ -104,15 +104,15 @@ class TwitterFetcher(dbus.service.Object):
 if __name__ == '__main__':
     import os
     try:
-        device_id = int(os.getenv('DEVICE_ID'))
+        app_id = int(os.getenv('APP_ID'))
     except Exception:
         #TODO: find better way of returning error (dbus?)
-        print 'TwitterFetcher: error parsing environment variables'
+        print 'TwitterFeed: error parsing environment variables'
         exit(1)
 
-    print "TwitterFetcher driver started... device id: %u" % (device_id)
+    print "TwitterFeed driver started... app id: %u" % (app_id)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = TwitterFetcher(device_id)
+    driver = TwitterFeed(app_id)
     driver.run()
 
     

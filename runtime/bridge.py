@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 
-from pdb import set_trace
-
 import dbus
 import dbus.service
 import dbus.mainloop.glib
@@ -27,9 +25,6 @@ with warnings.catch_warnings():
 from turkcore.namespace import *
 
 server =    ('macpro.local', 5222)
-thorax =    JID('thorax@macpro.local')
-app =       JID('app@macpro.local')
-platform =  JID('platform@macpro.local')
 jid =       JID("platform@macpro.local")
 password =  'password'
 
@@ -81,16 +76,16 @@ class Bridge(dbus.service.Object):
         """
 
     @debug
-    def updateConfig(self, type, driver, config, app):
+    def updateConfig(self, type, id, config):
         """
         Associates a new config entry with it's driver name, or updates
         the corresponding driver config if it already exists
         """
-        print 'updateConfig: type:%s driver:%s config:%s app:%s' % (type, driver, config, app)
-        if driver in self.configs:
-            self.configs[driver].NewDriverConfig(driver, config, app)
+        print 'updateConfig: type:%s id:%s config:%s' % (type, id, config)
+        if id in self.configs:
+            self.configs[id].NewDriverConfig(id, config)
         else:
-            self.configs[driver] = ConfigFile(self.bus, driver, config, app)
+            self.configs[id] = ConfigFile(self.bus, id, config)
 
     @debug
     def registerObserver(self, service, app):
@@ -242,7 +237,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
             dest = int(update['to'])
             source = int(update['from'])
             print 'got a update of type %s' % type
-            self.bridge.updateConfig(type, dest, str(update), source)
+            self.bridge.updateConfig(type, dest, str(update))
 
     @debug
     def subscribeReceived(self, entity):
@@ -254,29 +249,21 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 
 
 class ConfigFile(dbus.service.Object):
-    def __init__(self, bus, driver, config, app):
-        dbus.service.Object.__init__(self, bus, '/Bridge/ConfigFiles/%d' % driver)
-        self.driver = driver
-        self.app = app
+    def __init__(self, bus, id, config):
+        dbus.service.Object.__init__(self, bus, '/Bridge/ConfigFiles/%d' % id)
+        self.id = id
         self.config = config
-        self.NewDriverConfig(driver, config, app)
+        self.NewDriverConfig(id, config)
 
-    @dbus.service.signal(dbus_interface=TURK_BRIDGE_INTERFACE, signature='sss')
-    def NewDriverConfig(self, driver, config, app):
-        print 'NewDriverConfig: %d %s %d' % (driver, config, app)
+    @dbus.service.signal(dbus_interface=TURK_BRIDGE_INTERFACE, signature='ts')
+    def NewDriverConfig(self, id, config):
+        print 'NewDriverConfig: %d %s' % (id, config)
         self.config = config
-
 
     @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE,
                          in_signature='', out_signature='s')
     def GetConfig(self):
         return self.config
-
-
-    @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE,
-                         in_signature='', out_signature='s')
-    def GetApp(self):
-        return self.app
 
 
 def run(debug=False, daemon=False):

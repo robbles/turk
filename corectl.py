@@ -2,11 +2,16 @@
 
 import os, sys
 import signal
-import multiprocessing
+from subprocess import Popen
+from sys import stdout
 
 import turkcore.runtime.spawner as spawner
 import turkcore.runtime.bridge as bridge
 import xbeed
+
+#TODO: These should be optional arguments
+xbeed_name = 'xbee0'
+serial = '/dev/ttyS0'
 
 def launch():
     """
@@ -26,22 +31,20 @@ def launch():
     pids = open('turkcore.pid', 'w')
 
     try:
-        spawner_process = multiprocessing.Process(target=spawner.run)
-        spawner_process.start()
+        print 'starting spawner...'
+        spawner_process = Popen('spawner', executable='./runtime/spawner.py', stdout=stdout, close_fds=True)
         pids.write('%d\n' % spawner_process.pid)
 
-        bridge_process = multiprocessing.Process(target=bridge.run)
-        bridge_process.start()
+        print 'starting bridge...'
+        bridge_process = Popen('bridge', executable='./runtime/bridge.py', stdout=stdout, close_fds=True)
         pids.write('%d\n' % bridge_process.pid)
 
-        xbeed_process = multiprocessing.Process(target=xbeed.main, 
-                                                args=('xbee0', '/dev/ttyS0'))
-        xbeed_process.start()
+        print 'starting xbeed...'
+        xbeed_process = Popen(['xbeed', xbeed_name, serial], executable='../xbeed/xbeed.py', stdout=stdout, close_fds=True)
         pids.write('%d\n' % xbeed_process.pid)
 
         pids.close()
 
-        print 'Turk Core started...\n'
     except Exception, e:
         print 'Error starting Turk Core:', e
         pids.close()
@@ -58,6 +61,7 @@ def start():
         launch()
     else:
         print 'Starting Turk Core...'
+        os.wait()
 
 def stop():
     """
@@ -77,10 +81,7 @@ def stop():
     pids = open(pidfile, 'rU')
 
     # Kill all the Turk Core processes (should be one pid per line)
-    def destroy(pid):
-        print 'terminating pid %s' % pid
-        terminate(int(pid))
-    [destroy(pid) for pid in pids]
+    [terminate(pid) for pid in pids]
 
     os.unlink(pidfile)
     pids.close()
@@ -95,7 +96,7 @@ def clean():
 
 def terminate(pid):
     try:
-        os.kill(pid, signal.SIGTERM)
+        os.kill(int(pid), signal.SIGTERM)
     except Exception, e:
         print 'Failed to kill process %d: %s' % (pid, e)
     

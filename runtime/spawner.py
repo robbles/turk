@@ -125,11 +125,11 @@ class DriverSpawner(dbus.service.Object):
             return None
 
     def shutdown(self):
+        print 'Spawner: shutting down...'
         for driver in self.managed_drivers:
             driver.terminate()
         for worker in self.managed_workers:
             worker.terminate()
-        loop.quit()
         
     @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='')
     def SpawnerStarted(self):
@@ -183,12 +183,15 @@ def run(daemon=False):
         sys.exit(1)
 
     loop = gobject.MainLoop()
-    loop.run()
+    try:
+        loop.run()
+    except KeyboardInterrupt:
+        spawner.shutdown()
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == '--daemon':
         run(True)
     else:
-        run(False)
+        run()
 
