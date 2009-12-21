@@ -1,0 +1,28 @@
+# global options
+global:
+    hostname: macpro.local
+    bus: SystemBus
+
+# core launcher (corectl.py)
+corectl:
+    pidfile: 'turkcore.pid'
+    daemon: False
+
+# bridge (runtime/bridge.py)
+bridge:
+    daemon: False
+    debug: True
+
+# spawner (runtime/spawner.py)
+spawner:
+    daemon: False
+    debug: False
+
+# xbeed (xbeed/xbeed.py)
+xbeed:
+    port: /dev/ttyS0
+    baudrate: 9600
+    escaping: True
+    debug: True
+    daemon: False
+
