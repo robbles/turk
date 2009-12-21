@@ -26,6 +26,9 @@ DRIVER_ID = 7
 TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
 
+#FIXME
+SLEEP_TIME = 2000
+
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
 TURK_BRIDGE = "org.turkinnovations.core.Bridge"
 
@@ -40,11 +43,12 @@ class TwitterFeed(dbus.service.Object):
 
         self.api = twitter.Api()
 
-        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/%d' % self.app_id)
+        listen = '/Bridge/ConfigFiles/Workers/%d/%d' % (self.app_id, DRIVER_ID)
+        self.bus.add_signal_receiver(self.new_config, path=listen)
 
         gobject.timeout_add(SLEEP_TIME, self.poll_server)
 
-        print 'TwitterFeed: listening for %s' % ('/Bridge/ConfigFiles/%d' % self.app_id)
+        print 'TwitterFeed: listening for %s' % listen
 
 
     def poll_server(self):
@@ -54,11 +58,17 @@ class TwitterFeed(dbus.service.Object):
                 if statuses:
                     self.new_data(statuses[0].text)
                     self.last_id = statuses[0].id
+                else:
+                    print 'TwitterFeed: status is still the same'
             else:
                 statuses = self.api.GetPublicTimeline(since_id=self.last_id)
                 if statuses:
                     self.new_data(statuses[0].text)
                     self.last_id = statuses[0].id
+                else:
+                    print 'TwitterFeed: no new statuses'
+        except Exception, e:
+            print 'TwitterFeed: error fetching status', e
         finally:
             return True
 

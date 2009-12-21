@@ -75,19 +75,18 @@ class Bridge(dbus.service.Object):
         this data source
         """
 
-    @debug
-    def updateConfig(self, type, id, config):
+    
+    def updateConfig(self, type, id, config, app):
         """
         Associates a new config entry with it's driver name, or updates
         the corresponding driver config if it already exists
         """
-        print 'updateConfig: type:%s id:%s config:%s' % (type, id, config)
         if id in self.configs:
             self.configs[id].NewDriverConfig(id, config)
         else:
-            self.configs[id] = ConfigFile(self.bus, id, config)
+            self.configs[id] = ConfigFile(self.bus, type, id, config, app)
 
-    @debug
+    
     def registerObserver(self, service, app):
         """
         Registers app to be notified of events coming from service
@@ -98,7 +97,7 @@ class Bridge(dbus.service.Object):
         else:
             self.subscriptions[service] = [app]
 
-    @debug
+    
     def requireService(self, type, service, app):
         """
         Notifies Spawner that service needs to be started or already running.
@@ -156,32 +155,32 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 
         self.bridge.BridgeStarted()
 
-        @debug
+        
         def rosterReceived(roster):
-            """ Get roster and subscribe to all contacts """
+            """ Subscribe to all contacts in roster """
             for jid in roster:
-                print 'subscribing to presence from %s' % jid
                 self.subscribe(JID(jid))
+        # Get roster
         self.getRoster().addCallback(rosterReceived)
 
         # Set status to available
         self.available(show="chat", statuses={'':'Turk Platform Ready'})
 
-    @debug
+    
     def dataReceived(self, element):
         """
         Called when any data is received
         """
         print element.toXml()
 
-    @debug
+    
     def send(self, element):
         """
         Sends a message over the XML stream
         """
         self.stream.send(element)
 
-    @debug
+    
     def sendMessage(self, to, message, type='normal'):
         """
         Sends a message to another XMPP client 
@@ -191,7 +190,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         body = msg.addElement("body", content=message)
         self.send(msg)
 
-    @debug
+    
     def onMessage(self, message):
         """
         Called when a message stanza was received.
@@ -202,7 +201,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 
         print "BridgeXMPPHandler: received a '%s' message: '%s'" % (type, text)
 
-    @debug
+    @debug 
     def onRequire(self, message):
         """
         Called when Turk require element(s) are received
@@ -215,7 +214,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
             print 'service %s required for app %s' % (id, app)
             self.bridge.requireService(type, id, app)
 
-    @debug
+    @debug 
     def onRegister(self, message):
         """
         Called when Turk register element(s) are received
@@ -227,19 +226,23 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
             print 'app %s registering to service %s' % (id, app)
             self.bridge.registerObserver(id, app)
 
-    @debug
+    @debug 
     def onUpdate(self, message):
         """
         Called when Turk update element(s) are received
         """
         for update in xpath.queryForNodes(self.UPDATE, message):
-            type = update['type']
-            dest = int(update['to'])
-            source = int(update['from'])
-            print 'got a update of type %s' % type
-            self.bridge.updateConfig(type, dest, str(update))
+            try:
+                type = update['type']
+                dest = int(update['to'])
+                source = int(update['from'])
+                print 'got a update of type %s' % type
+                # Send the first element in the update to the driver
+                self.bridge.updateConfig(type, dest, update.children[0].toXml(), source)
+            except Exception, e:
+                print 'Error parsing update XML: ', e
 
-    @debug
+    
     def subscribeReceived(self, entity):
         """
         Subscription request was received.
@@ -249,16 +252,21 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 
 
 class ConfigFile(dbus.service.Object):
-    def __init__(self, bus, id, config):
-        dbus.service.Object.__init__(self, bus, '/Bridge/ConfigFiles/%d' % id)
+    def __init__(self, bus, type, id, config, app):
+        if type == 'worker':
+            self.path = '/Bridge/ConfigFiles/Workers/%d/%d' % (app, id)
+        else:
+            self.path = '/Bridge/ConfigFiles/Drivers/%d' % (id)
+        dbus.service.Object.__init__(self, bus, self.path)
+        self.type = type
         self.id = id
         self.config = config
         self.NewDriverConfig(id, config)
 
     @dbus.service.signal(dbus_interface=TURK_BRIDGE_INTERFACE, signature='ts')
     def NewDriverConfig(self, id, config):
-        print 'NewDriverConfig: %d %s' % (id, config)
         self.config = config
+        print self.path, 'updated with new config:', config.replace('\n','')
 
     @dbus.service.method(dbus_interface=TURK_CONFIG_INTERFACE,
                          in_signature='', out_signature='s')

@@ -10,15 +10,10 @@ DRIVER_ID = 6
 """
 ### Sample config ###
 
-"<?xml version="1.0" encoding="UTF-8"?>
-<color>
-    <red>255</red>
-    <green>255</green>
-    <blue>255</blue>
-</color>"
+<command type="color">#63A7E7</command>
 
 ### Sent to device ###
-"[\xFF\xFF\xFF]"
+"[\x63\xA7\xE7]"
 
 """
 
@@ -39,33 +34,39 @@ class RGBLamp(dbus.service.Object):
                                 dbus_interface=xbeed.XBEED_INTERFACE,
                                 signal_name="RecievedData",
                                 byte_arrays=True)
+        listen = '/Bridge/ConfigFiles/Drivers/%d' % (self.device_id)
+        self.bus.add_signal_receiver(self.new_config, path=listen)
 
-        self.bus.add_signal_receiver(self.new_config, path='/Bridge/ConfigFiles/%d' % (self.device_id))
-
-        print 'RGB Lamp: listening for %s' % ('/Bridge/ConfigFiles/%d' % (self.device_id))
+        print 'RGB Lamp: listening for %s' % listen
 
     def receive_data(self, rf_data, hw_addr):
         """ Called when device sends us data. Might happen when device is reset """
         print 'RGB Lamp: Received %d bytes from device' % len(rf_data)
         
-    def new_config(self, driver, xml, app):
-        print 'new xml config received: %s' % xml
-        tree = parseString(xml)
+    def new_config(self, driver, xml):
+        print 'new xml config received:'
+        print xml
         try:
-            red, green, blue = [int(tree.getElementsByTagName(color)[0].firstChild.nodeValue)
-                                for color in ['red', 'green', 'blue']]
-            print 'setting color to #%02X%02X%02X' % (red, green, blue)
+            tree = parseString(xml)
 
-            # Build a message of the form "[RGB]"
-            msg = ''.join(['[', chr(red), chr(green), chr(blue), ']'])
+            command = tree.getElementsByTagName('command')[0]
+            ctype = command.getAttribute('type') 
 
-            # Send it to the device
-            self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
+            if ctype == 'color':
+                # Parse hex color into RGB values
+                color = command.childNodes[0].nodeValue.lstrip('# \n\r')
+                red, green, blue = [int(color[i:i+2], 16) for i in range(0, 6, 2)]
 
+                # Build a message of the form "[RGB]"
+                msg = ''.join(['[', chr(red), chr(green), chr(blue), ']'])
+
+                # Send it to the device
+                print 'setting color to #%X%X%X' % (red, green, blue)
+                self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
 
         except Exception, e:
             # emit an error signal for bridge
-            self.error(e.message)
+            self.Error(e.message)
             print e
         
     def run(self):
@@ -73,7 +74,7 @@ class RGBLamp(dbus.service.Object):
         loop.run()
 
     @dbus.service.signal(dbus_interface=TURK_DRIVER_ERROR, signature='s') 
-    def error(self, message):
+    def Error(self, message):
         """ Called when an error/exception occurs. Emits a signal for any relevant
             system management daemons and loggers """
         pass

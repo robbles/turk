@@ -4,16 +4,11 @@ import os, sys
 import signal
 from subprocess import Popen
 from sys import stdout
+from optparse import OptionParser
 
-import turkcore.runtime.spawner as spawner
-import turkcore.runtime.bridge as bridge
-import xbeed
+default_name = 'xbee0'
 
-#TODO: These should be optional arguments
-xbeed_name = 'xbee0'
-serial = '/dev/ttyS0'
-
-def launch():
+def launch(options):
     """
     Starts the Turk Core as a group of processes. Logs each started daemon's PID
     in a file, so that a later call to stop() can shut them all down.
@@ -30,40 +25,44 @@ def launch():
 
     pids = open('turkcore.pid', 'w')
 
+    procs = {}
+
     try:
         print 'starting spawner...'
-        spawner_process = Popen('spawner', executable='./runtime/spawner.py', stdout=stdout, close_fds=True)
-        pids.write('%d\n' % spawner_process.pid)
+        procs['spawner'] = Popen('./runtime/spawner.py', stdout=stdout, close_fds=True)
+        pids.write('%d\n' % procs['spawner'].pid)
 
         print 'starting bridge...'
-        bridge_process = Popen('bridge', executable='./runtime/bridge.py', stdout=stdout, close_fds=True)
-        pids.write('%d\n' % bridge_process.pid)
+        procs['bridge'] = Popen('./runtime/bridge.py', stdout=stdout, close_fds=True)
+        pids.write('%d\n' % procs['bridge'].pid)
 
         print 'starting xbeed...'
-        xbeed_process = Popen(['xbeed', xbeed_name, serial], executable='../xbeed/xbeed.py', stdout=stdout, close_fds=True)
-        pids.write('%d\n' % xbeed_process.pid)
+        procs['xbeed'] = Popen(['./xbeed/xbeed.py', '-b', options.baudrate, default_name, options.serial], stdout=stdout, close_fds=True)
+        pids.write('%d\n' % procs['xbeed'].pid)
 
         pids.close()
 
     except Exception, e:
         print 'Error starting Turk Core:', e
+        for proc in procs.values():
+            terminate(proc.pid)
         pids.close()
         os.unlink('turkcore.pid')
 
 
-def start():
+def start(options):
     """
     Starts the Turk Core as a group of processes controlled by one master
     process
     """
     master = os.fork()
     if not master:
-        launch()
+        launch(options)
     else:
         print 'Starting Turk Core...'
         os.wait()
 
-def stop():
+def stop(options):
     """
     Reads the PID file left by start() and sends SIGTERM to all of the daemon
     processes that make up the core
@@ -86,7 +85,7 @@ def stop():
     os.unlink(pidfile)
     pids.close()
 
-def clean():
+def clean(options):
     """Deletes any data associated with improperly stopped Turk Core"""
     if os.path.exists('turkcore.pid'):
         print 'Removing turkcore.pid...'
@@ -98,7 +97,7 @@ def terminate(pid):
     try:
         os.kill(int(pid), signal.SIGTERM)
     except Exception, e:
-        print 'Failed to kill process %d: %s' % (pid, e)
+        print 'Failed to kill process %s: %s' % (pid, e)
     
 
 def run():
@@ -106,15 +105,21 @@ def run():
     Run as a utility for launching Turk Core
     usage: corectl.py start|stop
     """
-    try:
-        cmd = sys.argv[1]
-    except IndexError:
-        print 'usage: corectl.py start|stop\n'
-        exit(-1)
+    usage = "usage: %prog [options] <start|stop|restart|clean>"
+    parser = OptionParser(usage)
+    parser.add_option("-s", "--serial", dest="serial", type="string", default='/dev/ttyS0',
+                      help="serial port to use for XBee communication")
+    parser.add_option("-b", "--baudrate", dest="baudrate", type="string", default='9600',
+                      help="serial baudrate")
+    (options, args) = parser.parse_args()
+
+    if len(args) != 1:
+            parser.error("incorrect number of arguments")
 
     {'start':start,
      'stop':stop,
-     'clean':clean}[cmd]()
+     'restart':lambda opt: (stop(opt), start(opt)),
+     'clean':clean}[args[0]](options)
 
 
 if __name__ == '__main__':

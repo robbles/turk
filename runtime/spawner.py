@@ -133,7 +133,7 @@ class DriverSpawner(dbus.service.Object):
         
     @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='')
     def SpawnerStarted(self):
-        print 'Spawner Started'
+        pass
 
     @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='ss')
     def NewDriver(self, driver_name, driver_image):

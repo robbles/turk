@@ -109,7 +109,7 @@ class Grid(object):
             path.add_line_to(0, 0)
             drop = clutter.BehaviourPath(alpha, path)
             drop.apply(actor)
-            timeline.connect('completed', self.animation_done)
+            timeline.connect('completed', animation_done)
             self.animations[timeline] = (drop, holder)
             timeline.start()
 
