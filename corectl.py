@@ -5,10 +5,13 @@ import signal
 from subprocess import Popen
 from sys import stdout
 from optparse import OptionParser
+import yaml
 
 default_name = 'xbee0'
 
-def launch(options):
+conf = {}
+
+def launch():
     """
     Starts the Turk Core as a group of processes. Logs each started daemon's PID
     in a file, so that a later call to stop() can shut them all down.
@@ -37,7 +40,7 @@ def launch(options):
         pids.write('%d\n' % procs['bridge'].pid)
 
         print 'starting xbeed...'
-        procs['xbeed'] = Popen(['./xbeed/xbeed.py', '-b', options.baudrate, default_name, options.serial], stdout=stdout, close_fds=True)
+        procs['xbeed'] = Popen('./xbeed/xbeed.py', stdout=stdout, close_fds=True)
         pids.write('%d\n' % procs['xbeed'].pid)
 
         pids.close()
@@ -50,19 +53,19 @@ def launch(options):
         os.unlink('turkcore.pid')
 
 
-def start(options):
+def start():
     """
     Starts the Turk Core as a group of processes controlled by one master
     process
     """
     master = os.fork()
     if not master:
-        launch(options)
+        launch()
     else:
         print 'Starting Turk Core...'
         os.wait()
 
-def stop(options):
+def stop():
     """
     Reads the PID file left by start() and sends SIGTERM to all of the daemon
     processes that make up the core
@@ -85,7 +88,7 @@ def stop(options):
     os.unlink(pidfile)
     pids.close()
 
-def clean(options):
+def clean():
     """Deletes any data associated with improperly stopped Turk Core"""
     if os.path.exists('turkcore.pid'):
         print 'Removing turkcore.pid...'
@@ -100,30 +103,31 @@ def terminate(pid):
         print 'Failed to kill process %s: %s' % (pid, e)
     
 
-def run():
+def main():
+    global conf
     """
     Run as a utility for launching Turk Core
     usage: corectl.py start|stop
     """
-    usage = "usage: %prog [options] <start|stop|restart|clean>"
-    parser = OptionParser(usage)
-    parser.add_option("-s", "--serial", dest="serial", type="string", default='/dev/ttyS0',
-                      help="serial port to use for XBee communication")
-    parser.add_option("-b", "--baudrate", dest="baudrate", type="string", default='9600',
-                      help="serial baudrate")
+    parser = OptionParser("usage: %prog [options] <start|stop|restart|clean>")
+    parser.add_option("-f", "--config-file", dest="config", type="string", default='core.yml',
+                      help="default configuration file")
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
             parser.error("incorrect number of arguments")
 
+    conf = yaml.load(open(options.config, 'rU'))['corectl']
+    print conf
+
     {'start':start,
      'stop':stop,
-     'restart':lambda opt: (stop(opt), start(opt)),
-     'clean':clean}[args[0]](options)
+     'restart':lambda: (stop(), start()),
+     'clean':clean}[args[0]]()
 
 
 if __name__ == '__main__':
-    run()
+    main()
 
 
 

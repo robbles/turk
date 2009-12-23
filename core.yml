@@ -1,7 +1,3 @@
-# global options
-global:
-    hostname: macpro.local
-    bus: SystemBus
 
 # core launcher (corectl.py)
 corectl:
@@ -10,6 +6,11 @@ corectl:
 
 # bridge (runtime/bridge.py)
 bridge:
+    server: macpro.local
+    port: 5222
+    username: platform@macpro.local
+    password: password
+    bus: SystemBus
     daemon: False
     debug: True
 
@@ -20,6 +21,8 @@ spawner:
 
 # xbeed (xbeed/xbeed.py)
 xbeed:
+    name: xbee0
+    bus: SystemBus
     port: /dev/ttyS0
     baudrate: 9600
     escaping: True

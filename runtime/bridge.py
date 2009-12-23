@@ -4,6 +4,7 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+import yaml
 
 from twisted.internet import glib2reactor
 glib2reactor.install()
@@ -274,20 +275,12 @@ class ConfigFile(dbus.service.Object):
         return self.config
 
 
-def run(debug=False, daemon=False):
-    from sys import argv
-    from os import fork
-    for arg in argv[1:]:
-        if arg in ['-D', '--debug']:
-            debug = True
-        if arg in ['-d', '--daemon']:
-            daemon = True
-
-    if daemon and fork():
-        print 'Bridge: forking into background'
-        exit(0)
-
-    bridge = Bridge(server[0], server[1], jid, password, dbus.SystemBus())
+def run():
+    conf = yaml.load(open('core.yml', 'rU'))['bridge']
+    print conf
+    jid = JID(conf['username'])
+    bus = getattr(dbus, conf.get('bus', 'SystemBus'))()
+    bridge = Bridge(conf['server'], conf['port'], jid, conf['password'], bus)
     reactor.run()
 
 

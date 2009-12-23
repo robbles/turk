@@ -17,6 +17,7 @@ import gobject
 import dbus
 import dbus.service
 import dbus.mainloop.glib
+import yaml
 
 from turkcore.namespace import *
 
@@ -162,10 +163,8 @@ def run(daemon=False):
     """
     import signal
 
-    if daemon:
-        pid = os.fork()
-        if pid:
-            return pid
+    conf = yaml.load(open('core.yml', 'rU'))['spawner']
+    print conf
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
@@ -190,8 +189,5 @@ def run(daemon=False):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2 and sys.argv[1] == '--daemon':
-        run(True)
-    else:
-        run()
+    run()
 
