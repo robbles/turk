@@ -1,3 +1,3 @@
 [submodule "xbeed"]
 	path = xbeed
-	url = git@github.com:robbles/xbeedaemon.git
+	url = git://github.com/robbles/xbeedaemon.git
