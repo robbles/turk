@@ -1,0 +1,3 @@
+[submodule "xbeedaemon"]
+	path = xbeedaemon
+	url = git@github.com:robbles/xbeedaemon.git
