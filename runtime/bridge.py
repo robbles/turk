@@ -24,6 +24,7 @@ with warnings.catch_warnings():
     from wokkel.xmppim import PresenceClientProtocol, MessageProtocol, RosterClientProtocol
 
 from turkcore.namespace import *
+import urllib, urllib2
 
 server =    ('macpro.local', 5222)
 jid =       JID("platform@macpro.local")
@@ -75,8 +76,25 @@ class Bridge(dbus.service.Object):
         Publishes a new update via HTTP to all apps that have registered to
         this data source
         """
+        if source in self.subscriptions:
+            for observer in self.subscriptions[source]:
+                try:
+                    # build app URL
+                    url = namespace.TURK_CLOUD_APP_POST.substitute(id=observer)
+                    # encode params
+                    data = urllib.urlencode('')
+                    request = urllib2.Request(url, data)
+                    # POST request
+                    response = urllib2.urlopen(request, timeout=1)
+                    page = response.read(200000)
 
-    
+                    print page
+
+                except urllib2.HTTPError, e:
+                    print 'PublishUpdate: HTTP error %d' % e.getcode()
+                except Exception, e:
+                    print 'PublishUpdate: ', e
+                    
     def updateConfig(self, type, id, config, app):
         """
         Associates a new config entry with it's driver name, or updates
@@ -139,6 +157,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         Called right after connecting to the XMPP server. Sets up handlers
         and subscriptions and sends out presence notifications
         """
+        print 'connectionInitialized'
 
         PresenceClientProtocol.connectionInitialized(self)
         RosterClientProtocol.connectionInitialized(self)
@@ -214,6 +233,8 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
             type = service['type']
             print 'service %s required for app %s' % (id, app)
             self.bridge.requireService(type, id, app)
+            # Register app to receive updates as well
+            self.bridge.registerObserver(id, app)
 
     @debug 
     def onRegister(self, message):
@@ -279,6 +300,7 @@ def run():
     conf = yaml.load(open('core.yml', 'rU'))['bridge']
     print conf
     jid = JID(conf['username'])
+    print 'username is %s' % conf['username']
     bus = getattr(dbus, conf.get('bus', 'SystemBus'))()
     bridge = Bridge(conf['server'], conf['port'], jid, conf['password'], bus)
     reactor.run()

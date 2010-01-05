@@ -6,9 +6,9 @@ corectl:
 
 # bridge (runtime/bridge.py)
 bridge:
-    server: macpro.local
+    server: skynet.local
     port: 5222
-    username: platform@macpro.local
+    username: platform@skynet.local
     password: password
     bus: SystemBus
     daemon: False
@@ -23,7 +23,7 @@ spawner:
 xbeed:
     name: xbee0
     bus: SystemBus
-    port: /dev/ttyS0
+    port: /dev/tty.usbserial-A9009hpT
     baudrate: 9600
     escaping: True
     debug: True

@@ -3,6 +3,7 @@ import gobject
 import dbus
 import dbus.service
 import dbus.mainloop.glib
+from turkcore.namespace import *
 from xml.dom.minidom import parseString
 import twitter
 
@@ -25,9 +26,6 @@ DRIVER_ID = 7
 # Max number of requests per hour, and calculated sleep time in milliseconds
 TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
-
-#FIXME
-SLEEP_TIME = 2000
 
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
 TURK_BRIDGE = "org.turkinnovations.core.Bridge"
@@ -63,6 +61,7 @@ class TwitterFeed(dbus.service.Object):
             else:
                 statuses = self.api.GetPublicTimeline(since_id=self.last_id)
                 if statuses:
+                    print 'TwitterFeed: found new public status'
                     self.new_data(statuses[0].text)
                     self.last_id = statuses[0].id
                 else:
@@ -72,9 +71,30 @@ class TwitterFeed(dbus.service.Object):
         finally:
             return True
 
+    def handle_reply(self, *args):
+        #print 'TwitterFeed: received %s back from DBus method call' % (args,)
+        pass
+
+    def handle_error(self, ex):
+        print 'TwitterFeed: error posting data to app', ex
+
     def new_data(self, status):
         # FIXME : occasional unicode-related errors...?
-        print u'TwitterFeed: status is now "%s"' % (status)
+        print 'TwitterFeed: status updated'
+
+        # Use bridge to update app
+        try:
+            print 'TwitterFeed: converting status to unicode'
+            ustatus = unicode(status)
+
+            print 'TwitterFeed: sending status to app'
+            bridge = self.bus.get_object(TURK_BRIDGE_SERVICE, '/Bridge')
+            bridge.PublishUpdate('app', ustatus, unicode(DRIVER_ID),
+                    reply_handler=self.handle_reply, error_handler=self.handle_error)
+        except dbus.DBusException, e:
+            print 'TwitterFeed: error posting data to app', e
+        except Exception, e:
+            print 'TwitterFeed: error converting data', e
 
     def new_config(self, driver, xml):
         print 'new xml config received: %s' % xml
