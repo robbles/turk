@@ -17,16 +17,11 @@ def launch():
     in a file, so that a later call to stop() can shut them all down.
     """
     
-    # Make sure we're in the Turk Core directory
-    core_dir = os.path.dirname(sys.argv[0])
-    os.chdir(core_dir)
-    pidfile = 'turkcore.pid'
-
-    if os.path.exists(pidfile):
-        print 'File %s exists - Is Turk Core already running?' % pidfile
+    if os.path.exists(conf['pidfile']):
+        print 'File %s exists - Is Turk Core already running?' % conf['pidfile']
         exit(-1)
 
-    pids = open('turkcore.pid', 'w')
+    pids = open(conf['pidfile'], 'w')
 
     procs = {}
 
@@ -71,8 +66,6 @@ def stop():
     processes that make up the core
     """
     print 'Stopping Turk Core...'
-    core_dir = os.path.dirname(sys.argv[0])
-    os.chdir(core_dir)
     pidfile = 'turkcore.pid'
 
     if not os.path.exists(pidfile):
@@ -116,6 +109,10 @@ def main():
 
     if len(args) != 1:
             parser.error("incorrect number of arguments")
+
+    # Make sure we're in the Turk Core directory
+    core_dir = os.path.dirname(sys.argv[0])
+    os.chdir(core_dir)
 
     conf = yaml.load(open(options.config, 'rU'))['corectl']
     print conf

@@ -19,15 +19,13 @@ with warnings.catch_warnings():
     from twisted.words.xish import xpath
     from twisted.application.internet import TCPClient
     from twisted.internet import reactor
-    from wokkel.subprotocols import XMPPHandler
-    from wokkel.xmppim import AvailablePresence, UnavailablePresence, Presence
-    from wokkel.xmppim import PresenceClientProtocol, MessageProtocol, RosterClientProtocol
+    from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
 from turkcore.namespace import *
 import urllib, urllib2
 
-server =    ('macpro.local', 5222)
-jid =       JID("platform@macpro.local")
+server =    ('skynet.local', 5222)
+jid =       JID("platform@skynet.local")
 password =  'password'
 
 
@@ -35,9 +33,9 @@ def debug(func):
     name = func.__name__
     def wrapper(*args, **kwargs):
         if func.func_code.co_code in ['d\x00\x00S','d\x01\x00S']:
-            print '# %s #' % name
+            print '# Bridge: %s #' % name
         else:
-            print '[ %s ]' % name
+            print '[ Bridge: %s ]' % name
         return func(*args, **kwargs)
     return wrapper
 
@@ -157,7 +155,6 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         Called right after connecting to the XMPP server. Sets up handlers
         and subscriptions and sends out presence notifications
         """
-        print 'connectionInitialized'
 
         PresenceClientProtocol.connectionInitialized(self)
         RosterClientProtocol.connectionInitialized(self)
@@ -168,6 +165,9 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         # Callback for chat messages
         self.xmlstream.addObserver('/message/body', self.onMessage)
 
+        # Callback for subscribed presence
+        self.xmlstream.addObserver("/presence[@type='subscribe']", self.subscribeReceived)
+
         # Callbacks for require, register, update
         self.xmlstream.addObserver(self.REQUIRE, self.onRequire)
         self.xmlstream.addObserver(self.REGISTER, self.onRegister)
@@ -175,7 +175,6 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 
         self.bridge.BridgeStarted()
 
-        
         def rosterReceived(roster):
             """ Subscribe to all contacts in roster """
             for jid in roster:
@@ -298,9 +297,8 @@ class ConfigFile(dbus.service.Object):
 
 def run():
     conf = yaml.load(open('core.yml', 'rU'))['bridge']
-    print conf
+    print 'Bridge conf:', conf
     jid = JID(conf['username'])
-    print 'username is %s' % conf['username']
     bus = getattr(dbus, conf.get('bus', 'SystemBus'))()
     bridge = Bridge(conf['server'], conf['port'], jid, conf['password'], bus)
     reactor.run()

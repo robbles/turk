@@ -164,7 +164,7 @@ def run(daemon=False):
     import signal
 
     conf = yaml.load(open('core.yml', 'rU'))['spawner']
-    print conf
+    print 'Spawner conf:', conf
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
