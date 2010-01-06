@@ -45,7 +45,7 @@ def launch():
         for proc in procs.values():
             terminate(proc.pid)
         pids.close()
-        os.unlink('turkcore.pid')
+        os.unlink(conf['pidfile'])
 
 
 def start():
@@ -66,11 +66,12 @@ def stop():
     processes that make up the core
     """
     print 'Stopping Turk Core...'
-    pidfile = 'turkcore.pid'
+
+    pidfile = conf['pidfile']
 
     if not os.path.exists(pidfile):
         print 'Couldn\'t find pidfile! Is Turk Core REALLY running?'
-        exit(-1)
+        return
 
     # Get pids from file
     pids = open(pidfile, 'rU')
@@ -83,11 +84,11 @@ def stop():
 
 def clean():
     """Deletes any data associated with improperly stopped Turk Core"""
-    if os.path.exists('turkcore.pid'):
-        print 'Removing turkcore.pid...'
-        os.unlink('turkcore.pid')
+    if os.path.exists(conf['pidfile']):
+        print 'Removing old pidfile...'
+        os.unlink(conf['pidfile'])
     else:
-        print 'No turkcore.pid file to remove!'
+        print 'No pidfile file to remove!'
 
 def terminate(pid):
     try:

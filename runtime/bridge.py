@@ -258,8 +258,10 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
                 dest = int(update['to'])
                 source = int(update['from'])
                 print 'got a update of type %s' % type
+
                 # Send the first element in the update to the driver
-                self.bridge.updateConfig(type, dest, update.children[0].toXml(), source)
+                self.bridge.updateConfig(type, dest, update.toXml(), source)
+
             except Exception, e:
                 print 'Error parsing update XML: ', e
 
