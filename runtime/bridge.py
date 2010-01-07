@@ -5,6 +5,7 @@ import dbus.service
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 import yaml
+import os
 
 from twisted.internet import glib2reactor
 glib2reactor.install()
@@ -298,7 +299,8 @@ class ConfigFile(dbus.service.Object):
 
 
 def run():
-    conf = yaml.load(open('core.yml', 'rU'))['bridge']
+    conf_file = os.getenv('TURK_CORE_CONF', 'core.yml')
+    conf = yaml.load(open(conf_file, 'rU'))['bridge']
     print 'Bridge conf:', conf
     jid = JID(conf['username'])
     bus = getattr(dbus, conf.get('bus', 'SystemBus'))()

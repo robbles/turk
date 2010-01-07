@@ -163,7 +163,8 @@ def run(daemon=False):
     """
     import signal
 
-    conf = yaml.load(open('core.yml', 'rU'))['spawner']
+    conf_file = os.getenv('TURK_CORE_CONF', 'core.yml')
+    conf = yaml.load(open(conf_file, 'rU'))['spawner']
     print 'Spawner conf:', conf
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)

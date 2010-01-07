@@ -109,13 +109,15 @@ def main():
     (options, args) = parser.parse_args()
 
     if len(args) != 1:
-            parser.error("incorrect number of arguments")
+        parser.error("incorrect number of arguments")
 
     # Make sure we're in the Turk Core directory
     core_dir = os.path.dirname(sys.argv[0])
     os.chdir(core_dir)
 
     conf = yaml.load(open(options.config, 'rU'))['corectl']
+    os.environ['TURK_CORE_CONF'] = options.config
+
     print conf
 
     {'start':start,
