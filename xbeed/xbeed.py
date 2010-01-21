@@ -62,6 +62,7 @@ class XBeeDaemon(dbus.service.Object):
     def handle_packet(self, packet):
         if isinstance(packet, ReceivePacket):
             XBeeModule.get(packet.hw_addr).RecievedData(packet.rf_data, packet.hw_addr)
+        print packet
             
     @dbus.service.method(XBEED_INTERFACE, in_signature='ayty', out_signature='', byte_arrays=True)  
     def SendData(self, rf_data, hw_addr, frame_id):
@@ -169,7 +170,7 @@ class TransmitStatus(XBeeModuleFrame):
         self.discovery = discovery
     
     def __str__(self):
-        return '[Status for frame %d: %s]' % (self.frame_id, self.status)
+        return '[TransmitStatus for frame %d: %s]' % (self.frame_id, self.status)
 
 class ReceivePacket(XBeeModuleFrame):
     """ When the module receives an RF packet, it is sent out the UART using this message type. """
@@ -183,7 +184,7 @@ class ReceivePacket(XBeeModuleFrame):
         self.rf_data = rf_data
         
     def __str__(self):
-        return '[Received %d bytes from 0x%X]' % (len(self.rf_data), self.hw_addr)
+        return '[ReceivePacket %d bytes from 0x%X]' % (len(self.rf_data), self.hw_addr)
         
 class ModemStatus(XBeeModuleFrame):
     """ RF module status messages are sent from the module in response to specific conditions."""
@@ -195,7 +196,7 @@ class ModemStatus(XBeeModuleFrame):
         self.status = (status, self.statuses.get(status, 'Unknown Status'))
         
     def __str__(self):
-        return '[Modem Status: %s]' % (self.status,)
+        return '[ModemStatus: %s]' % (self.status,)
         
 class XBeeClientFrame(object):
     """Abstract class for constructing new packets to send to XBee module"""

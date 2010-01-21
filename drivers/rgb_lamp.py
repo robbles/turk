@@ -2,7 +2,7 @@
 import gobject
 import dbus
 import dbus.mainloop.glib
-import xbeed
+from turkcore.xbeed import xbeed
 from xml.dom.minidom import parseString
 
 DRIVER_ID = 6
@@ -22,7 +22,7 @@ TURK_BRIDGE = "org.turkinnovations.core.Bridge"
 
 class RGBLamp(dbus.service.Object):
     def __init__(self, device_id, device_addr):
-        dbus.service.Object.__init__(self, dbus.SessionBus(),
+        dbus.service.Object.__init__(self, dbus.SystemBus(),
                                      '/Drivers/RGBLamp/%X' % device_addr)
         self.device_id = device_id
         self.device_addr = device_addr
