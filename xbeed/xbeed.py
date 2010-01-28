@@ -48,7 +48,7 @@ class XBeeDaemon(dbus.service.Object):
     def serial_read(self, fd, condition, *args):
         """ Called when there is data available from the serial port """
         buffer = self.serial.read(256)
-        print 'xbeed: read %d bytes' % len(buffer)
+        #print 'xbeed: read %d bytes' % len(buffer)
         try:
             if(self.partial.add(buffer)):
                 packet = XBeeModuleFrame.parse(*self.partial.get_data())

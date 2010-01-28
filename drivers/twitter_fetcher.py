@@ -3,7 +3,7 @@ import gobject
 import dbus
 import dbus.service
 import dbus.mainloop.glib
-from turkcore.namespace import *
+from turkcore.locations import *
 from xml.dom.minidom import parseString
 import twitter
 

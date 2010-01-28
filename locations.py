@@ -14,6 +14,6 @@ TURK_CLOUD_DRIVER_STORAGE = string.Template('http://drivers.turkinnovations.com/
 # Driver/Worker -> App POST API
 TURK_CLOUD_APP_POST = string.Template('http://apps.turkinnovations.com/apps/${id}/')
 
-# XML Namespace
+# XMPP Namespace
 TURK_CONFIG_NAMESPACE = "http://turkinnovations.com/protocol/1.0/config"
 

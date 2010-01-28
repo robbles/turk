@@ -1,4 +1,0 @@
-# Make all D-BUS method calls non-blocking
-
-# Look into using Telepathy framework for real-time driver->application communication
-

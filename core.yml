@@ -18,12 +18,14 @@ bridge:
 spawner:
     daemon: False
     debug: False
+    autostart: ['rgb_lamp.py' : { 'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'},
+                'pixel_clock.py' : {'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}]
 
 # xbeed (xbeed/xbeed.py)
 xbeed:
     name: xbee0
     bus: SystemBus
-    port: /dev/ttyS0
+    port: /dev/tty.usbserial-A9009hpT
     baudrate: 9600
     escaping: True
     debug: True

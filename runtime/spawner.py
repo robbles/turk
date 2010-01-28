@@ -19,7 +19,7 @@ import dbus.service
 import dbus.mainloop.glib
 import yaml
 
-from turkcore.namespace import *
+from turkcore.locations import *
 
 class DriverSpawner(dbus.service.Object):
     

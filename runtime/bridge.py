@@ -22,7 +22,7 @@ with warnings.catch_warnings():
     from twisted.internet import reactor
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
-from turkcore.namespace import *
+from turkcore.locations import *
 import urllib, urllib2
 
 server =    ('skynet.local', 5222)
@@ -79,7 +79,7 @@ class Bridge(dbus.service.Object):
             for observer in self.subscriptions[source]:
                 try:
                     # build app URL
-                    url = namespace.TURK_CLOUD_APP_POST.substitute(id=observer)
+                    url = TURK_CLOUD_APP_POST.substitute(id=observer)
                     # encode params
                     data = urllib.urlencode('')
                     request = urllib2.Request(url, data)

@@ -1,27 +1,25 @@
 __author__="Rob O'Dwyer"
-__date__ ="$Nov 11, 2009 5:34:40 PM$"
+__date__ ="$Jan 28, 2010 5:34:40 PM$"
 
 from setuptools import setup,find_packages
 
 setup (
-  name = 'Turk',
+  name = 'Turk Core',
   version = '0.1',
   packages = find_packages(),
 
-  # Declare your packages' dependencies here, for eg:
-  install_requires=['foo>=3'],
+  install_requires=['twisted', 'pyserial', 'PyYAML', 'dbus'],
 
-  # Fill in these to make your Egg ready for upload to
-  # PyPI
-  author = 'rob',
-  author_email = '',
+  author = 'Rob O\'Dwyer',
+  author_email = 'odwyerrob@gmail.com',
 
-  summary = 'Just another Python package for the cheese shop',
-  url = '',
-  license = '',
-  long_description= 'Long description of the package',
+  summary = 'Turk Core - the software framework for interfacing applications and devices to the Turk Web Interface Service',
+  url = 'http://turkinnovations.com',
+  license = 'GPL',
+  long_description= """Turk Core - the software framework for interfacing applications and devices to the Turk Web Interface.
+Once you have an account with turkinnovations.com (or another service using the Turk XMPP protocol), this framework lets you develop and
+automatically run simple drivers that interface devices and applications to your web apps running in the cloud. Includes a variety of built-in
+libraries for interfacing hardware, including Digi XBee modules, serially connected Arduinos or similar microcontroller devices, and MIDI instruments.
+  """,
 
-  # could also include long_description, download_url, classifiers, etc.
-
-  
 )
