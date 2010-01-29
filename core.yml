@@ -10,7 +10,7 @@ bridge:
     port: 5222
     username: platform@skynet.local
     password: password
-    bus: SystemBus
+    bus: SessionBus
     daemon: False
     debug: True
 
@@ -24,7 +24,7 @@ spawner:
 # xbeed (xbeed/xbeed.py)
 xbeed:
     name: xbee0
-    bus: SystemBus
+    bus: SessionBus
     port: /dev/tty.usbserial-A9009hpT
     baudrate: 9600
     escaping: True

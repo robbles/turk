@@ -23,8 +23,8 @@ from turkcore.locations import *
 
 class DriverSpawner(dbus.service.Object):
     
-    def __init__(self):
-        bus_name = dbus.service.BusName(TURK_SPAWNER_SERVICE, dbus.SystemBus())
+    def __init__(self, bus):
+        bus_name = dbus.service.BusName(TURK_SPAWNER_SERVICE, bus)
         dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = []
         self.managed_workers = []
@@ -165,12 +165,12 @@ def run(daemon=False):
 
     conf_file = os.getenv('TURK_CORE_CONF', 'core.yml')
     conf = yaml.load(open(conf_file, 'rU'))['spawner']
-    print 'Spawner conf:', conf
+    print 'Spawner: conf is ', conf
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = dbus.SystemBus()
+    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
     
-    spawner = DriverSpawner()
+    spawner = DriverSpawner(bus)
     signal.signal(signal.SIGTERM, spawner.shutdown)
     
     try:

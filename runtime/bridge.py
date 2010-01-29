@@ -303,7 +303,7 @@ def run():
     conf = yaml.load(open(conf_file, 'rU'))['bridge']
     print 'Bridge conf:', conf
     jid = JID(conf['username'])
-    bus = getattr(dbus, conf.get('bus', 'SystemBus'))()
+    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
     bridge = Bridge(conf['server'], conf['port'], jid, conf['password'], bus)
     reactor.run()
 
