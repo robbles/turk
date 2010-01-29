@@ -3,7 +3,7 @@ import gobject
 import dbus
 import dbus.service
 import dbus.mainloop.glib
-from turkcore.locations import *
+from turk.locations import *
 from xml.dom.minidom import parseString
 import twitter
 
@@ -28,7 +28,7 @@ TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
 
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
-TURK_BRIDGE = "org.turkinnovations.core.Bridge"
+TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
 
 class TwitterFeed(dbus.service.Object):
     def __init__(self, app_id):

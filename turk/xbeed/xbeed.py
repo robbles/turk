@@ -340,7 +340,7 @@ def main():
     global BUS_NAME
     usage = "usage: %prog [options]"
     parser = OptionParser(usage)
-    parser.add_option("-f", "--config-file", dest="config", type="string", default='core.yml',
+    parser.add_option("-f", "--config-file", dest="config", type="string", default='turk.yml',
                       help="default configuration file")
     (options, args) = parser.parse_args()
     

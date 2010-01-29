@@ -19,7 +19,7 @@ import dbus.service
 import dbus.mainloop.glib
 import yaml
 
-from turkcore.locations import *
+from turk.locations import *
 
 class DriverSpawner(dbus.service.Object):
     
@@ -163,7 +163,7 @@ def run(daemon=False):
     """
     import signal
 
-    conf_file = os.getenv('TURK_CORE_CONF', 'core.yml')
+    conf_file = os.getenv('TURK_CORE_CONF', 'turk.yml')
     conf = yaml.load(open(conf_file, 'rU'))['spawner']
     print 'Spawner: conf is ', conf
 

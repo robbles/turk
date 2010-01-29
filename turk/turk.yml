@@ -1,7 +1,7 @@
 
 # core launcher (corectl.py)
-corectl:
-    pidfile: 'turkcore.pid'
+turkctl:
+    pidfile: 'turk.pid'
     daemon: False
 
 # bridge (runtime/bridge.py)
@@ -18,6 +18,8 @@ bridge:
 spawner:
     daemon: False
     debug: False
+    # Add drivers here that should be automatically started
+    # The value of each entry is the environment the driver is started in
     autostart: ['rgb_lamp.py' : { 'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'},
                 'pixel_clock.py' : {'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}]
 
@@ -25,7 +27,7 @@ spawner:
 xbeed:
     name: xbee0
     bus: SessionBus
-    port: /dev/tty.usbserial-A9009hpT
+    port: /dev/ttyS0
     baudrate: 9600
     escaping: True
     debug: True

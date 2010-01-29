@@ -2,7 +2,7 @@
 import gobject
 import dbus
 import dbus.mainloop.glib
-from turkcore.xbeed import xbeed
+from turk.xbeed import xbeed
 from xml.dom.minidom import parseString
 from ntplib import NTPClient
 from datetime import datetime
@@ -24,7 +24,7 @@ TIME_SERVER = 'pool.ntp.org'
 """
 
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
-TURK_BRIDGE = "org.turkinnovations.core.Bridge"
+TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
 
 class PixelClock(dbus.service.Object):
     def __init__(self, device_id, device_addr):

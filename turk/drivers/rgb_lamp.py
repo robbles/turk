@@ -2,7 +2,7 @@
 import gobject
 import dbus
 import dbus.mainloop.glib
-from turkcore.xbeed import xbeed
+from turk.xbeed import xbeed
 from xml.dom.minidom import parseString
 
 DRIVER_ID = 6
@@ -18,7 +18,7 @@ DRIVER_ID = 6
 """
 
 TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
-TURK_BRIDGE = "org.turkinnovations.core.Bridge"
+TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
 
 class RGBLamp(dbus.service.Object):
     def __init__(self, device_id, device_addr):

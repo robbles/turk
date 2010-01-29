@@ -22,7 +22,7 @@ with warnings.catch_warnings():
     from twisted.internet import reactor
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
-from turkcore.locations import *
+from turk.locations import *
 import urllib, urllib2
 
 server =    ('skynet.local', 5222)
@@ -299,7 +299,7 @@ class ConfigFile(dbus.service.Object):
 
 
 def run():
-    conf_file = os.getenv('TURK_CORE_CONF', 'core.yml')
+    conf_file = os.getenv('TURK_CORE_CONF', 'turk.yml')
     conf = yaml.load(open(conf_file, 'rU'))['bridge']
     print 'Bridge conf:', conf
     jid = JID(conf['username'])

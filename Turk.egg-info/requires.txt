@@ -1,0 +1,4 @@
+twisted
+pyserial
+PyYAML
+wokkel

@@ -63,7 +63,7 @@ def start():
 def stop():
     """
     Reads the PID file left by start() and sends SIGTERM to all of the daemon
-    processes that make up the core
+    processes that make up the runtime
     """
     print 'Stopping Turk Core...'
 
@@ -101,10 +101,10 @@ def main():
     global conf
     """
     Run as a utility for launching Turk Core
-    usage: corectl.py start|stop
+    usage: turkctl.py start|stop
     """
     parser = OptionParser("usage: %prog [options] <start|stop|restart|clean>")
-    parser.add_option("-f", "--config-file", dest="config", type="string", default='core.yml',
+    parser.add_option("-f", "--config-file", dest="config", type="string", default='turk.yml',
                       help="default configuration file")
     (options, args) = parser.parse_args()
 
@@ -112,10 +112,10 @@ def main():
         parser.error("incorrect number of arguments")
 
     # Make sure we're in the Turk Core directory
-    core_dir = os.path.dirname(sys.argv[0])
-    os.chdir(core_dir)
+    turk_dir = os.path.dirname(sys.argv[0])
+    os.chdir(turk_dir)
 
-    conf = yaml.load(open(options.config, 'rU'))['corectl']
+    conf = yaml.load(open(options.config, 'rU'))['turkctl']
     os.environ['TURK_CORE_CONF'] = options.config
 
     print conf
