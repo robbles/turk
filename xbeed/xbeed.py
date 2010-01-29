@@ -12,8 +12,9 @@ Copyright (c) 2009 Turk Innovations. All rights reserved.
 
 import os
 import sys
+from time import sleep
 from optparse import OptionParser
-from serial import Serial
+from serial import Serial, SerialException
 from struct import pack, unpack
 from StringIO import StringIO
 import yaml
@@ -36,10 +37,11 @@ class XBeeDaemon(dbus.service.Object):
     All other arguments are passed off to the underlying pySerial implementation
     """
     def __init__(self, name, port, escaping=True, baudrate=9600):
-        if escaping:
-            self.serial = EscapingSerial(port=port, baudrate=baudrate, timeout=0)
-        else:
-            self.serial = Serial(port=port, baudrate=baudrate, timeout=0)  
+        self.port, self.baudrate = port, baudrate
+        self.serial_type = EscapingSerial if escaping else Serial
+
+        self.connect(disable_first=False)
+
         self.object_path = XBEED_DAEMON_OBJECT % name
         self.partial = PartialFrame()
         dbus.service.Object.__init__(self, BUS_NAME, self.object_path)
@@ -47,8 +49,11 @@ class XBeeDaemon(dbus.service.Object):
         
     def serial_read(self, fd, condition, *args):
         """ Called when there is data available from the serial port """
-        buffer = self.serial.read(256)
-        #print 'xbeed: read %d bytes' % len(buffer)
+        try:
+            buffer = self.serial.read(256)
+        except OSError:
+            self.connect()
+            return True
         try:
             if(self.partial.add(buffer)):
                 packet = XBeeModuleFrame.parse(*self.partial.get_data())
@@ -63,13 +68,35 @@ class XBeeDaemon(dbus.service.Object):
         if isinstance(packet, ReceivePacket):
             XBeeModule.get(packet.hw_addr).RecievedData(packet.rf_data, packet.hw_addr)
         print packet
+
+    def connect(self, disable_first=True):
+        """ Disconnects the current serial port and continually attempts to reconnect """
+        if disable_first:
+            print 'Disconnecting serial port...'
+            self.serial.close()
+            self.serial.write = lambda *args: None
+
+        # Keep trying to open the port
+        while True:
+            try:
+                self.serial = self.serial_type(self.port, self.baudrate)
+                print 'xbeed: Serial successfully connected!'
+                break
+            except SerialException, e:
+                print 'xbeed: Failed opening port, retrying... ', e
+                # Wait for a couple of seconds before trying again
+                sleep(3)
+                continue
             
     @dbus.service.method(XBEED_INTERFACE, in_signature='ayty', out_signature='', byte_arrays=True)  
     def SendData(self, rf_data, hw_addr, frame_id):
         """ Sends an RF data packet to the specified XBee module """
         print 'xbeed: SendData called, sending %d bytes to address 0x%X' % (len(rf_data), hw_addr)
         packet = TransmitRequest(hw_addr=hw_addr, rf_data=str(rf_data), frame_id=frame_id)
-        packet.write_frame(self.serial)
+        try:
+            packet.write_frame(self.serial)
+        except OSError:
+            self.connect()
     
     @dbus.service.method(XBEED_INTERFACE, in_signature='s', out_signature='s')    
     def GetInfo(self, arg):
@@ -208,14 +235,11 @@ class XBeeClientFrame(object):
         
     def write_frame(self, fd):
         """ Writes the binary representation of the packet to a file-like object """
-        try:
-            fd.write(pack('>BH', 0x7E, self.length))
-            frame_data = pack(self.signature, *self.fields)
-            checksum = generate_checksum(frame_data)
-            fd.write(frame_data)
-            fd.write(chr(checksum))
-        except OSError:
-            print 'xbeed: Error writing to serial port'
+        fd.write(pack('>BH', 0x7E, self.length))
+        frame_data = pack(self.signature, *self.fields)
+        checksum = generate_checksum(frame_data)
+        fd.write(frame_data)
+        fd.write(chr(checksum))
         
 class TransmitRequest(XBeeClientFrame):
     api_id = 0x10
@@ -323,6 +347,7 @@ def main():
     try:
         conf_file = os.getenv('TURK_CORE_CONF', options.config)
         conf = yaml.load(open(conf_file, 'rU'))['xbeed']
+        print 'xbeed: conf is ', conf
     except:
         print 'xbeed: error loading config file'
         parser.print_help()
@@ -330,7 +355,7 @@ def main():
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    bus = getattr(dbus, conf.get('bus', 'SystemBus'))()
+    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
     BUS_NAME = dbus.service.BusName(XBEED_SERVICE, bus)
     
     daemon = XBeeDaemon(name=conf['name'], port=conf['port'], baudrate=conf['baudrate'], escaping=conf['escaping'])
