@@ -18,20 +18,31 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 import yaml
-
-from turk.locations import *
+import turk
 
 class DriverSpawner(dbus.service.Object):
     
-    def __init__(self, bus):
-        bus_name = dbus.service.BusName(TURK_SPAWNER_SERVICE, bus)
+    def __init__(self, bus, autostart=[]):
+        bus_name = dbus.service.BusName(turk.TURK_SPAWNER_SERVICE, bus)
         dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = []
         self.managed_workers = []
         self.known_devices = []
         self.known_apps = []
+
+        for driver in autostart:
+            gobject.timeout_add(2000, self.autostart_driver, driver['filename'], driver['env'])
+
         self.SpawnerStarted()
         
+
+    def autostart_driver(self, filename, env):
+        self.managed_drivers.append(subprocess.Popen(filename, stdout=sys.stdout, env=env))
+        if 'DEVICE_ID' in env:
+            self.known_devices.append(env['DEVICE_ID'])
+            print 'Autostarted driver for device %s' % (env['DEVICE_ID'])
+
+
     def new_packet(self, rf_data, device_addr):
         print 'Spawner: inspecting a packet of %d bytes from 0x%X' % (len(rf_data), device_addr)
 
@@ -46,7 +57,7 @@ class DriverSpawner(dbus.service.Object):
 
                 # Get the driver from the server and attempt to run it
                 if device_id not in self.known_devices:
-                    self.run_driver(device_id, device_addr)
+                    self.run_driver(device_id, '%X' % device_addr)
                 else:
                     print 'driver for device %d already started' % device_id
 
@@ -60,10 +71,10 @@ class DriverSpawner(dbus.service.Object):
             if driver_info:
                 drivername, driverargs = driver_info
                 print "starting driver %s" % drivername
-                env = {'CONTEXT':'SPAWNER',
-                       'DEVICE_ADDRESS':'%X' % device_addr,
-                       'DEVICE_ID':str(device_id),
-                       'ARGUMENTS':driverargs}
+                env = {'CONTEXT' : 'SPAWNER',
+                       'DEVICE_ADDRESS' : device_addr,
+                       'DEVICE_ID' : str(device_id),
+                       'ARGUMENTS' : driverargs}
                 self.managed_drivers.append(subprocess.Popen(drivername, stdout=sys.stdout, env=env))
                 self.known_devices.append(device_id)
 
@@ -93,7 +104,7 @@ class DriverSpawner(dbus.service.Object):
 
     def fetch_driver(self, device_id):
         try:
-            addr = TURK_CLOUD_DRIVER_INFO.substitute(id=device_id)
+            addr = turk.TURK_CLOUD_DRIVER_INFO.substitute(id=device_id)
             driver_info = parseString(urllib2.urlopen(addr).read())
             driver = driver_info.getElementsByTagName('driver')[0]
             if not driver:
@@ -106,8 +117,8 @@ class DriverSpawner(dbus.service.Object):
             else:
                 args = ''
             print "fetched driver info, driver's name is %s" % title
-            print "fetching: " + TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename)
-            driverdata = urllib2.urlopen(TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
+            print "fetching: " + turk.TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename)
+            driverdata = urllib2.urlopen(turk.TURK_CLOUD_DRIVER_STORAGE.substitute(filename=filename))
             filename = 'drivers/%s' % filename
             if not os.path.exists(filename):
                 driverfile = open(filename, 'wB')
@@ -132,15 +143,15 @@ class DriverSpawner(dbus.service.Object):
         for worker in self.managed_workers:
             worker.terminate()
         
-    @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='')
+    @dbus.service.signal(dbus_interface=turk.TURK_SPAWNER_INTERFACE, signature='')
     def SpawnerStarted(self):
         pass
 
-    @dbus.service.signal(dbus_interface=TURK_SPAWNER_INTERFACE, signature='ss')
+    @dbus.service.signal(dbus_interface=turk.TURK_SPAWNER_INTERFACE, signature='ss')
     def NewDriver(self, driver_name, driver_image):
         print 'new driver found: name %s, image file %s' % (driver_name, driver_image)
 
-    @dbus.service.method(dbus_interface=TURK_SPAWNER_INTERFACE, in_signature='stt', out_signature='')
+    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='stt', out_signature='')
     def requireService(self, type, service, app):
         """
         Starts a worker or driver if necessary, and returns True if the service
@@ -151,7 +162,7 @@ class DriverSpawner(dbus.service.Object):
             if service in self.known_devices:
                 return
             else:
-                raise dbus.DBusException("Driver for %d unknown")
+                raise dbus.DBusException("Driver %d unknown" % (service))
         if type == 'worker':
             self.run_worker(service, app)
 
@@ -169,8 +180,10 @@ def run(daemon=False):
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
+
+    autostart = conf.get('autostart', [])
     
-    spawner = DriverSpawner(bus)
+    spawner = DriverSpawner(bus, autostart)
     signal.signal(signal.SIGTERM, spawner.shutdown)
     
     try:

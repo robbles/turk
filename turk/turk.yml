@@ -6,9 +6,9 @@ turkctl:
 
 # bridge (runtime/bridge.py)
 bridge:
-    server: skynet.local
+    server: macpro.local
     port: 5222
-    username: platform@skynet.local
+    username: platform@macpro.local
     password: password
     bus: SessionBus
     daemon: False
@@ -18,16 +18,18 @@ bridge:
 spawner:
     daemon: False
     debug: False
-    # Add drivers here that should be automatically started
-    # The value of each entry is the environment the driver is started in
-    autostart: ['rgb_lamp.py' : { 'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'},
-                'pixel_clock.py' : {'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}]
+    # Add drivers that should be automatically started here with their parameters
+    autostart: [
+        {'filename':'drivers/rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'}},
+{'filename':'drivers/interactable.py', 'env':{'DEVICE_ID':'9'}},
+# {'filename':'drivers/pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}},
+                ]
 
 # xbeed (xbeed/xbeed.py)
 xbeed:
     name: xbee0
     bus: SessionBus
-    port: /dev/ttyS0
+    port: /dev/tty.usbserial-A9009hpT
     baudrate: 9600
     escaping: True
     debug: True

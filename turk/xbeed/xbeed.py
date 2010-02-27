@@ -9,6 +9,7 @@ Allows access to the Zigbee PAN through DBUS or XML-RPC.
 Created by Rob O'Dwyer on 2009-10-21.
 Copyright (c) 2009 Turk Innovations. All rights reserved.
 """
+import pdb
 
 import os
 import sys
@@ -18,6 +19,7 @@ from serial import Serial, SerialException
 from struct import pack, unpack
 from StringIO import StringIO
 import yaml
+import logging
 
 import gobject
 import dbus
@@ -29,6 +31,8 @@ XBEED_INTERFACE = 'org.turkinnovations.xbeed.XBeeInterface'
 XBEED_DAEMON_OBJECT = '/XBeeInterfaces/%s'
 XBEED_MODULE_OBJECT = '/XBeeModules/%X'
 
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(name='xbeed')
 
 class XBeeDaemon(dbus.service.Object):
     """
@@ -40,17 +44,20 @@ class XBeeDaemon(dbus.service.Object):
         self.port, self.baudrate = port, baudrate
         self.serial_type = EscapingSerial if escaping else Serial
 
-        self.connect(disable_first=False)
-
         self.object_path = XBEED_DAEMON_OBJECT % name
         self.partial = PartialFrame()
         dbus.service.Object.__init__(self, BUS_NAME, self.object_path)
-        gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
+
+        self.connected = False
+        self.monitored = False
+        gobject.timeout_add(2000, self.connect, False)
         
     def serial_read(self, fd, condition, *args):
         """ Called when there is data available from the serial port """
         try:
+            log.debug('reading from serial')
             buffer = self.serial.read(256)
+            log.debug('read %d bytes' % (len(buffer)))
         except OSError:
             self.connect()
             return True
@@ -59,54 +66,60 @@ class XBeeDaemon(dbus.service.Object):
                 packet = XBeeModuleFrame.parse(*self.partial.get_data())
                 self.handle_packet(packet)
         except ChecksumFail, e:
-            print 'xbeed: ', e  
+            log.debug(e)
         except UnknownFrameType, e:
-            print 'xbeed: ', e  
+            log.debug(e)
         return True # Keep calling this function when data is available
     
     def handle_packet(self, packet):
+        log.debug(packet)
         if isinstance(packet, ReceivePacket):
             XBeeModule.get(packet.hw_addr).RecievedData(packet.rf_data, packet.hw_addr)
-        print packet
 
     def connect(self, disable_first=True):
         """ Disconnects the current serial port and continually attempts to reconnect """
         if disable_first:
-            print 'Disconnecting serial port...'
+            log.debug('Disconnecting serial port...')
             self.serial.close()
             self.serial.write = lambda *args: None
 
-        # Keep trying to open the port
-        while True:
-            try:
-                self.serial = self.serial_type(self.port, self.baudrate)
-                print 'xbeed: Serial successfully connected!'
-                break
-            except SerialException, e:
-                print 'xbeed: Failed opening port, retrying... ', e
-                # Wait for a couple of seconds before trying again
-                sleep(3)
-                continue
+        try:
+            self.serial = self.serial_type(self.port, self.baudrate, timeout=0)
+            if not self.monitored:
+                gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
+                self.monitored = True
+            log.debug('Serial successfully connected!')
+
+            #pdb.set_trace()
+
+            self.connected = True
+            # Stop trying to reconnect
+            return False
+        except SerialException, e:
+            #log.debug('Failed opening port, retrying... %s' % e)
+            # Re-schedule another attempt to connect
+            return True
             
     @dbus.service.method(XBEED_INTERFACE, in_signature='ayty', out_signature='', byte_arrays=True)  
     def SendData(self, rf_data, hw_addr, frame_id):
         """ Sends an RF data packet to the specified XBee module """
-        print 'xbeed: SendData called, sending %d bytes to address 0x%X' % (len(rf_data), hw_addr)
+        log.debug('SendData called, sending %d bytes to address 0x%X' % (len(rf_data), hw_addr))
         packet = TransmitRequest(hw_addr=hw_addr, rf_data=str(rf_data), frame_id=frame_id)
         try:
-            packet.write_frame(self.serial)
+            if self.connected:
+                packet.write_frame(self.serial)
         except OSError:
             self.connect()
     
     @dbus.service.method(XBEED_INTERFACE, in_signature='s', out_signature='s')    
     def GetInfo(self, arg):
         """ Returns some marginally useful info about the current xbeed instance """
-        print 'xbeed: GetInfo called'
+        log.debug('GetInfo called')
         return self.object_path
         
     @dbus.service.method(XBEED_INTERFACE, in_signature='tay', out_signature='', byte_arrays=True)
     def FakeReceivedData(self, rf_data, hw_addr):
-        print 'xbeed: Faking receive of packet from 0x%X, %d bytes' % (hw_addr, len(rf_data)) 
+        log.debug('Faking receive of packet from 0x%X, %d bytes' % (hw_addr, len(rf_data)) )
         XBeeModule.get(hw_addr).RecievedData(rf_data, hw_addr)
         
 class EscapingSerial(Serial):
@@ -331,7 +344,7 @@ def fake_data(name, bus, hw_addr, data):
 
 def print_hex(data):
     for byte in data:
-        print '0x%X ' % ord(byte),
+        log.debug('0x%X ' % ord(byte),)
      
 
 BUS_NAME = None
@@ -347,9 +360,9 @@ def main():
     try:
         conf_file = os.getenv('TURK_CORE_CONF', options.config)
         conf = yaml.load(open(conf_file, 'rU'))['xbeed']
-        print 'xbeed: conf is ', conf
+        log.debug('conf is %s' % conf)
     except:
-        print 'xbeed: error loading config file'
+        log.critical('error loading config file')
         parser.print_help()
         exit(1)
 
