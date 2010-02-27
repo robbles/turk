@@ -21,12 +21,12 @@ TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
 TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
 
 class RGBLamp(dbus.service.Object):
-    def __init__(self, device_id, device_addr):
-        dbus.service.Object.__init__(self, dbus.SystemBus(),
+    def __init__(self, device_id, device_addr, bus):
+        dbus.service.Object.__init__(self, bus,
                                      '/Drivers/RGBLamp/%X' % device_addr)
         self.device_id = device_id
         self.device_addr = device_addr
-        self.bus = dbus.SystemBus()
+        self.bus = bus
         self.xbee = xbeed.get_daemon('xbee0', self.bus)
 
         self.bus.add_signal_receiver(self.receive_data,
@@ -61,7 +61,7 @@ class RGBLamp(dbus.service.Object):
                 msg = ''.join(['[', chr(red), chr(green), chr(blue), ']'])
 
                 # Send it to the device
-                print 'setting color to #%X%X%X' % (red, green, blue)
+                print 'setting color to #%02X%02X%02X' % (red, green, blue)
                 self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
 
         except Exception, e:
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     device_addr = int(os.getenv('DEVICE_ADDRESS'), 16)
     print "RGB Lamp driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = RGBLamp(device_id, device_addr)
+    driver = RGBLamp(device_id, device_addr, dbus.SessionBus())
     driver.run()
 
     

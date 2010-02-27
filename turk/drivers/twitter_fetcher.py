@@ -3,7 +3,7 @@ import gobject
 import dbus
 import dbus.service
 import dbus.mainloop.glib
-from turk.locations import *
+import turk
 from xml.dom.minidom import parseString
 import twitter
 
@@ -26,9 +26,6 @@ DRIVER_ID = 7
 # Max number of requests per hour, and calculated sleep time in milliseconds
 TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
-
-TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
-TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
 
 class TwitterFeed(dbus.service.Object):
     def __init__(self, app_id):
@@ -88,7 +85,7 @@ class TwitterFeed(dbus.service.Object):
             ustatus = unicode(status)
 
             print 'TwitterFeed: sending status to app'
-            bridge = self.bus.get_object(TURK_BRIDGE_SERVICE, '/Bridge')
+            bridge = self.bus.get_object(turk.TURK_BRIDGE_SERVICE, '/Bridge')
             bridge.PublishUpdate('app', ustatus, unicode(DRIVER_ID),
                     reply_handler=self.handle_reply, error_handler=self.handle_error)
         except dbus.DBusException, e:
@@ -123,7 +120,7 @@ class TwitterFeed(dbus.service.Object):
         loop = gobject.MainLoop()
         loop.run()
 
-    @dbus.service.signal(dbus_interface=TURK_DRIVER_ERROR, signature='s') 
+    @dbus.service.signal(dbus_interface=turk.TURK_DRIVER_ERROR, signature='s') 
     def error(self, message):
         """ Called when an error/exception occurs. Emits a signal for any relevant
             system management daemons and loggers """
