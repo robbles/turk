@@ -23,6 +23,7 @@ with warnings.catch_warnings():
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
 import turk
+from turk import get_config
 import urllib, urllib2
 
 server =    ('skynet.local', 5222)
@@ -313,13 +314,22 @@ class ConfigFile(dbus.service.Object):
         return self.config
 
 
-def run():
-    conf_file = os.getenv('TURK_CORE_CONF', 'turk.yml')
-    conf = yaml.load(open(conf_file, 'rU'))['bridge']
-    print 'Bridge conf:', conf
-    jid = JID(conf['username'])
-    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
-    bridge = Bridge(conf['server'], conf['port'], jid, conf['password'], bus)
+def run(conf='/etc/turk/turk.yml', daemon=False):
+    if isinstance(conf, basestring):
+        try:
+            conf = yaml.load(open(conf, 'rU'))['bridge']
+        except Exception:
+            print 'Bridge: failed opening configuration file "%s"' % (conf)
+            exit(1)
+
+    jid = JID(get_config(conf, 'bridge.username'))
+
+    bus = getattr(dbus, get_config(conf, 'bridge.bus'))()
+
+    server, port = get_config(conf, 'bridge.server'), get_config(conf, 'bridge.port')
+    password = get_config(conf, 'bridge.password')
+
+    bridge = Bridge(server, port, jid, password, bus)
     reactor.run()
 
 

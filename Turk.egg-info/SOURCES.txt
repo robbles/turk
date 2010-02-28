@@ -6,9 +6,9 @@ Turk.egg-info/entry_points.txt
 Turk.egg-info/requires.txt
 Turk.egg-info/top_level.txt
 turk/__init__.py
-turk/locations.py
 turk/turkctl.py
 turk/drivers/__init__.py
+turk/drivers/interactable.py
 turk/drivers/pixel_clock.py
 turk/drivers/rgb_lamp.py
 turk/drivers/twitter_fetcher.py

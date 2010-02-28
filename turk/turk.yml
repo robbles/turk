@@ -17,19 +17,21 @@ bridge:
 # spawner (runtime/spawner.py)
 spawner:
     daemon: False
+    bus: SessionBus
     debug: False
     # Add drivers that should be automatically started here with their parameters
     autostart: [
-        {'filename':'drivers/rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'}},
-{'filename':'drivers/interactable.py', 'env':{'DEVICE_ID':'9'}},
-# {'filename':'drivers/pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}},
+        {'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'}},
+#{'filename':'interactable.py', 'env':{'DEVICE_ID':'9'}},
+# {'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}},
                 ]
+    drivers: /usr/share/turk/drivers
 
 # xbeed (xbeed/xbeed.py)
 xbeed:
     name: xbee0
     bus: SessionBus
-    port: /dev/tty.usbserial-A9009hpT
+    port: '/dev/tty.usbserial-A9009hpT'
     baudrate: 9600
     escaping: True
     debug: True

@@ -26,6 +26,8 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 
+from turk import get_config, get_configs
+
 XBEED_SERVICE = 'org.turkinnovations.xbeed'
 XBEED_INTERFACE = 'org.turkinnovations.xbeed.XBeeInterface'
 XBEED_DAEMON_OBJECT = '/XBeeInterfaces/%s'
@@ -78,24 +80,26 @@ class XBeeDaemon(dbus.service.Object):
 
     def connect(self, disable_first=True):
         """ Disconnects the current serial port and continually attempts to reconnect """
+        print 'xbeed: trying to connect'
         if disable_first:
             log.debug('Disconnecting serial port...')
             self.serial.close()
             self.serial.write = lambda *args: None
 
         try:
+            print 'xbeed: opening serial', self.port, self.baudrate
             self.serial = self.serial_type(self.port, self.baudrate, timeout=0)
             if not self.monitored:
                 gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
                 self.monitored = True
+            print 'serial connected'
             log.debug('Serial successfully connected!')
-
-            #pdb.set_trace()
 
             self.connected = True
             # Stop trying to reconnect
             return False
         except SerialException, e:
+            print e
             #log.debug('Failed opening port, retrying... %s' % e)
             # Re-schedule another attempt to connect
             return True
@@ -349,32 +353,25 @@ def print_hex(data):
 
 BUS_NAME = None
 
-def main():
+def run(conf='/etc/turk/turk.yml'):
     global BUS_NAME
-    usage = "usage: %prog [options]"
-    parser = OptionParser(usage)
-    parser.add_option("-f", "--config-file", dest="config", type="string", default='turk.yml',
-                      help="default configuration file")
-    (options, args) = parser.parse_args()
     
-    try:
-        conf_file = os.getenv('TURK_CORE_CONF', options.config)
-        conf = yaml.load(open(conf_file, 'rU'))['xbeed']
-        log.debug('conf is %s' % conf)
-    except:
-        log.critical('error loading config file')
-        parser.print_help()
-        exit(1)
+    if isinstance(conf, basestring):
+        try:
+            conf = yaml.load(open(conf, 'rU'))['xbeed']
+        except Exception:
+            print 'xbeed: failed opening configuration file "%s"' % (conf)
+            exit(1)
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
+    bus = getattr(dbus, get_config(conf, 'xbeed.bus'))()
     BUS_NAME = dbus.service.BusName(XBEED_SERVICE, bus)
     
-    daemon = XBeeDaemon(name=conf['name'], port=conf['port'], baudrate=conf['baudrate'], escaping=conf['escaping'])
+    daemon = XBeeDaemon(*get_configs(conf, ('name', 'port', 'escaping', 'baudrate'), 'xbeed'))
 
     mainloop = gobject.MainLoop()
     mainloop.run()     
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run())

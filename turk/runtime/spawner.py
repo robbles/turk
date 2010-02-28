@@ -19,16 +19,19 @@ import dbus.service
 import dbus.mainloop.glib
 import yaml
 import turk
+import multiprocessing
+from turk import get_config
 
 class DriverSpawner(dbus.service.Object):
     
-    def __init__(self, bus, autostart=[]):
+    def __init__(self, bus, drivers, autostart=[]):
         bus_name = dbus.service.BusName(turk.TURK_SPAWNER_SERVICE, bus)
         dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = []
         self.managed_workers = []
         self.known_devices = []
         self.known_apps = []
+        self.drivers = drivers
 
         for driver in autostart:
             gobject.timeout_add(2000, self.autostart_driver, driver['filename'], driver['env'])
@@ -37,7 +40,8 @@ class DriverSpawner(dbus.service.Object):
         
 
     def autostart_driver(self, filename, env):
-        self.managed_drivers.append(subprocess.Popen(filename, stdout=sys.stdout, env=env))
+        path = ''.join([self.drivers, '/', filename])
+        self.managed_drivers.append(subprocess.Popen(path, stdout=sys.stdout, env=env))
         if 'DEVICE_ID' in env:
             self.known_devices.append(env['DEVICE_ID'])
             print 'Autostarted driver for device %s' % (env['DEVICE_ID'])
@@ -75,7 +79,9 @@ class DriverSpawner(dbus.service.Object):
                        'DEVICE_ADDRESS' : device_addr,
                        'DEVICE_ID' : str(device_id),
                        'ARGUMENTS' : driverargs}
-                self.managed_drivers.append(subprocess.Popen(drivername, stdout=sys.stdout, env=env))
+
+                path = ''.join([self.drivers, '/', drivername])
+                self.managed_drivers.append(subprocess.Popen(path, stdout=sys.stdout, env=env))
                 self.known_devices.append(device_id)
 
                 # Emit a signal indicating that driver has been started
@@ -93,11 +99,12 @@ class DriverSpawner(dbus.service.Object):
                 env = {'CONTEXT':'SPAWNER',
                        'APP_ID':str(app_id),
                        'ARGUMENTS':workerargs}
-                self.managed_workers.append(subprocess.Popen(workername, stdout=sys.stdout, env=env))
+
+                path = ''.join([self.drivers, '/', workername])
+                self.managed_workers.append(subprocess.Popen(path, stdout=sys.stdout, env=env))
                 self.known_apps.append(worker_id)
 
                 # Emit a signal indicating that worker has been started
-                # TODO: check for customized worker/device icon
                 self.NewDriver(workername, 'worker.png')
         except OSError, e:
             print 'failed starting worker: %s' % e
@@ -167,23 +174,28 @@ class DriverSpawner(dbus.service.Object):
             self.run_worker(service, app)
 
             
-def run(daemon=False):
+def run(conf='/etc/turk/turk.yml', daemon=False):
     """
     Start Spawner as a standalone process.
     if daemon = True, forks into the background first
     """
     import signal
 
-    conf_file = os.getenv('TURK_CORE_CONF', 'turk.yml')
-    conf = yaml.load(open(conf_file, 'rU'))['spawner']
-    print 'Spawner: conf is ', conf
+    # Load configuration if given as filename
+    if isinstance(conf, basestring):
+        try:
+            conf = yaml.load(open(conf, 'rU'))['spawner']
+        except Exception:
+            print 'Spawner: Failed opening configuration file "%s"' % (conf)
+            exit(1)
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = getattr(dbus, conf.get('bus', 'SessionBus'))()
+    bus = getattr(dbus, get_config(conf, 'spawner.bus'))()
 
-    autostart = conf.get('autostart', [])
+    drivers = get_config(conf, 'spawner.drivers')
+    autostart = get_config(conf, 'spawner.autostart')
     
-    spawner = DriverSpawner(bus, autostart)
+    spawner = DriverSpawner(bus, drivers, autostart)
     signal.signal(signal.SIGTERM, spawner.shutdown)
     
     try:
