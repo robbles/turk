@@ -2,7 +2,7 @@
 import gobject
 import dbus
 import dbus.mainloop.glib
-from turk.xbeed import xbeed
+from turk.xbeed.xbeed import get_daemon
 from xml.dom.minidom import parseString
 from ntplib import NTPClient
 from datetime import datetime
@@ -19,12 +19,16 @@ TIME_SERVER = 'pool.ntp.org'
 <command type="timezone">-8</command>
 
 ### Sent to device every SYNC_TIME seconds ###
-'[' + H + M + S + AM/PM + ']'
+'[' + H + M + S + AM/PM + '@'
 
 """
 
-TURK_DRIVER_ERROR = "org.turkinnovations.drivers.Error"
-TURK_BRIDGE = "org.turkinnovations.turk.Bridge"
+from turk import *
+
+SET_TIME_COMMAND = '[%s%s%s%s@'
+SET_TEXT_COMMAND = '[%s#'
+SET_COLOR_COMMAND = '[%s%s%s%s$'
+
 
 class PixelClock(dbus.service.Object):
     def __init__(self, device_id, device_addr, bus):
@@ -37,27 +41,20 @@ class PixelClock(dbus.service.Object):
         self.device_id = device_id
         self.device_addr = device_addr
         self.bus = bus
-        self.xbee = xbeed.get_daemon('xbee0', self.bus)
+        self.xbee = get_daemon('xbee0', self.bus)
 
-        self.bus.add_signal_receiver(self.receive_data,
-                                path='/XBeeModules/%X' % device_addr,
-                                dbus_interface=xbeed.XBEED_INTERFACE,
-                                signal_name="RecievedData",
-                                byte_arrays=True)
         listen = '/Bridge/ConfigFiles/Drivers/%d' % (self.device_id)
         self.bus.add_signal_receiver(self.update, path=listen)
         print 'Pixel Clock: listening for %s' % listen
 
-        # Timezone is currently not used
+        # Timezone is currently not used, but can be set anyways
         self.timezone = 0
 
         # Make sure sync handler is called every SYNC_TIME milliseconds
         gobject.timeout_add(SYNC_TIME, self.sync)
 
     def sync(self):
-        """ 
-        Periodically resets the clock with NTP
-        """
+        """ Periodically resets the clock with NTP """
         try:
             self.set_time()
         except Exception, e:
@@ -79,16 +76,18 @@ class PixelClock(dbus.service.Object):
         else:
             hour, minute, second, pm = time
 
-        msg = ''.join(['[', chr(hour), chr(minute), chr(second), chr(pm), ']']) 
+        msg = SET_TIME_COMMAND % (chr(hour), chr(minute), chr(second), chr(pm)) 
         self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
 
 
-    def receive_data(self, rf_data, hw_addr):
+    def set_text(self, text='    '):
         """
-        Handler called when device sends data. Might happen when device is reset
+        Sets the text on the clock with a simple Zigbee message. Only four symbols can
+        be displayed at once, so it's a bit limited.
         """
-        print 'Pixel Clock: Received %d bytes from device' % len(rf_data)
-        
+        msg = SET_TEXT_COMMAND % (text) 
+        self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
+
 
     def update(self, driver, xml):
         """
@@ -114,6 +113,11 @@ class PixelClock(dbus.service.Object):
                 # Parse time value
                 self.timezone = int(command.childNodes[0].nodeValue)
 
+            elif ctype == 'text':
+                # Parse time value
+                text = command.childNodes[0].nodeValue[:4]
+                self.set_text(text)
+
         except Exception, e:
             # emit an error signal for bridge
             self.Error(e.message)
@@ -133,8 +137,17 @@ class PixelClock(dbus.service.Object):
 # Run as a standalone driver
 if __name__ == '__main__':
     import os
-    device_id = int(os.getenv('DEVICE_ID'))
-    device_addr = int(os.getenv('DEVICE_ADDRESS'), 16)
+    try:
+        device_id = int(os.getenv('DEVICE_ID'))
+    except:
+        print 'PixelClock: DEVICE_ID not provided or invalid'
+        exit(-1)
+    try:
+        device_addr = int(os.getenv('DEVICE_ADDRESS'), 16)
+    except:
+        print 'PixelClock: DEVICE_ADDRESS not provided or invalid'
+        exit(-1)
+
     print "Pixel Clock driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     driver = PixelClock(device_id, device_addr, dbus.SessionBus())
