@@ -276,7 +276,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
                 source = int(update['from'])
                 print 'got a update of type %s' % type
 
-                # Send the first element in the update to the driver
+                # Send the update to the driver
                 self.bridge.updateConfig(type, dest, update.toXml(), source)
 
             except Exception, e:

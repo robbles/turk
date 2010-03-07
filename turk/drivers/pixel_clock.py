@@ -72,7 +72,8 @@ class PixelClock(dbus.service.Object):
         if not time:
             req = NTPClient().request(TIME_SERVER)
             time = datetime.fromtimestamp(req.tx_time)
-            hour, minute, second, pm = time.hour % 12, time.minute, time.second, (time.hour > 11)
+            hour = 12 if time.hour == 0 else time.hour % 12
+            minute, second, pm = time.minute, time.second, (time.hour > 11)
         else:
             hour, minute, second, pm = time
 
@@ -150,7 +151,7 @@ if __name__ == '__main__':
 
     print "Pixel Clock driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = PixelClock(device_id, device_addr, dbus.SessionBus())
+    driver = PixelClock(device_id, device_addr, dbus.SystemBus())
     driver.run()
 
     

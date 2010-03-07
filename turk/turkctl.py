@@ -43,9 +43,10 @@ def start(conf):
             bridge = multiprocessing.Process(target=run_bridge, args=(conf,))
             bridge.start()
 
-            print 'starting xbeed...'
-            xbeed = multiprocessing.Process(target=run_xbeed, args=(conf,))
-            xbeed.start()
+            if hasattr(conf, 'xbeed'):
+                print 'starting xbeed...'
+                xbeed = multiprocessing.Process(target=run_xbeed, args=(conf,))
+                xbeed.start()
 
         except Exception, e:
             print 'turkctl: error starting Turk:', e
@@ -56,7 +57,8 @@ def start(conf):
             print 'Turk is shutting down...'
             spawner.terminate()
             bridge.terminate()
-            xbeed.terminate()
+            if hasattr(conf, 'xbeed'):
+                xbeed.terminate()
             exit(0)
 
         signal.signal(signal.SIGTERM, finished)
