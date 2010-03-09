@@ -2,7 +2,6 @@
 
 import os, sys
 import signal
-from sys import stdout
 from optparse import OptionParser
 import yaml
 import multiprocessing
@@ -12,11 +11,9 @@ from time import sleep
 from turk.runtime.spawner import run as run_spawner
 from turk.runtime.bridge import run as run_bridge
 from turk.xbeed.xbeed import run as run_xbeed
-from turk import get_config
+from turk import get_config, init_logging
 
-default_name = 'xbee0'
-
-conf = {}
+log = init_logging('turkctl')
 
 def start(conf):
     """
@@ -35,26 +32,26 @@ def start(conf):
     if not pid:
         # Controller process
         try:
-            print 'starting spawner...'
+            log.debug('starting spawner...')
             spawner = multiprocessing.Process(target=run_spawner, args=(conf,), name='spawner')
             spawner.start()
 
-            print 'starting bridge...'
+            log.debug('starting bridge...')
             bridge = multiprocessing.Process(target=run_bridge, args=(conf,))
             bridge.start()
 
             if conf.has_key('xbeed'):
-                print 'starting xbeed...'
+                log.debug('starting xbeed...')
                 xbeed = multiprocessing.Process(target=run_xbeed, args=(conf,))
                 xbeed.start()
 
         except Exception, e:
-            print 'turkctl: error starting Turk:', e
+            log.debug('turkctl: error starting Turk: %s' % e)
             os.unlink(pidfile_path)
             exit(-1)
 
         def finished(*args):
-            print 'Turk is shutting down...'
+            log.debug('stopping Turk...')
             spawner.terminate()
             bridge.terminate()
             if conf.has_key('xbeed'):
@@ -71,7 +68,7 @@ def start(conf):
         # Starter process
         pidfile.write('%d\n' % pid)
         pidfile.close()
-        print 'turkctl: started Turk'
+        print 'starting Turk...'
 
 
 def stop(conf):
@@ -79,12 +76,12 @@ def stop(conf):
     Reads the PID file left by start() and sends SIGTERM to all of the daemon
     processes that make up the runtime
     """
-    print 'Stopping Turk'
+    print 'stopping Turk...'
 
     pidfile_path = get_config('turkctl.pidfile', conf)
 
     if not os.path.exists(pidfile_path):
-        print 'Couldn\'t find pidfile! Is Turk Core REALLY running?'
+        print 'Couldn\'t find pidfile! Is Turk REALLY running?'
         return
 
     # Get pids from file
@@ -102,16 +99,16 @@ def clean(conf):
     pidfile_path = get_config('turkctl.pidfile', conf)
 
     if os.path.exists(pidfile_path):
-        print 'Removing old pidfile...'
+        log.debug('Removing old pidfile...')
         os.unlink(pidfile_path)
     else:
-        print 'No pidfile to remove!'
+        log.debug('No pidfile to remove!')
 
 def terminate(pid):
     try:
         os.kill(int(pid), signal.SIGTERM)
     except Exception, e:
-        print 'Failed to kill process %s: %s' % (pid, e)
+        log.debug('Failed to kill process %s: %s' % (pid, e))
     
 
 def main():
@@ -128,9 +125,10 @@ def main():
         parser.error("incorrect number of arguments")
 
     conf = yaml.load(open(options.config, 'rU'))
-    os.environ['TURK_CORE_CONF'] = options.config
+    os.environ['TURK_CONF'] = options.config
 
-    print 'conf:', conf
+    if not get_config('turkctl.debug', conf):
+        log.setLevel(logging.WARNING)
 
     {'start':start,
      'stop':stop,

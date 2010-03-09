@@ -5,6 +5,7 @@ global:
 # control interface and launcher (corectl.py)
 turkctl:
     pidfile: 'turk.pid'
+    debug: True
 
 # bridge (drivers <-> XMPP <-> apps)
 bridge:
@@ -17,6 +18,7 @@ bridge:
 # spawner (starts/stops and manages drivers)
 spawner:
     # Add drivers that should be automatically started here along with their parameters
+    # minimum parameters are: device_id, filename
     autostart: [
         {'device_id': 6, 'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD'}, 'args': []},
         {'device_id': 8, 'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A'}, 'args': []},

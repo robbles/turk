@@ -1,4 +1,5 @@
 import string
+import logging
 
 # D-BUS services and interfaces
 TURK_BRIDGE_SERVICE = "org.turkinnovations.turk.Bridge"
@@ -26,6 +27,7 @@ DEFAULT = {
     },
     'turkctl': {
         'pidfile': '/etc/turk/turk.pid',
+        'debug': True,
     },
     'bridge': {
         'server': 'macpro.local',
@@ -70,5 +72,10 @@ def get_configs(keys, conf=DEFAULT, prefix=''):
         all.append(get_config('.'.join([prefix, key]), conf))
     return tuple(all)
 
+def init_logging(module):
+    logging.basicConfig(format = '(%(levelname)s) %(name)s: %(message)s')
+    log = logging.getLogger(module)
+    log.setLevel(logging.DEBUG)
+    return log
 
 

@@ -27,15 +27,14 @@ import dbus.service
 import dbus.mainloop.glib
 
 from turk import get_config, get_configs
+import turk
 
 XBEED_SERVICE = 'org.turkinnovations.xbeed'
 XBEED_INTERFACE = 'org.turkinnovations.xbeed.XBeeInterface'
 XBEED_DAEMON_OBJECT = '/XBeeInterfaces/%s'
 XBEED_MODULE_OBJECT = '/XBeeModules/%X'
 
-logging.basicConfig()
-log = logging.getLogger('xbeed')
-log.setLevel(logging.DEBUG)
+log = turk.init_logging('xbeed')
 
 class XBeeDaemon(dbus.service.Object):
     """
@@ -58,9 +57,7 @@ class XBeeDaemon(dbus.service.Object):
     def serial_read(self, fd, condition, *args):
         """ Called when there is data available from the serial port """
         try:
-            log.debug('reading from serial')
             buffer = self.serial.read(256)
-            log.debug('read %d bytes' % (len(buffer)))
         except OSError:
             self.connect()
             return True
@@ -81,14 +78,13 @@ class XBeeDaemon(dbus.service.Object):
 
     def connect(self, disable_first=True):
         """ Disconnects the current serial port and continually attempts to reconnect """
-        log.debug( 'xbeed: trying to connect')
         if disable_first:
             log.debug('Disconnecting serial port...')
             self.serial.close()
             self.serial.write = lambda *args: None
 
         try:
-            log.debug( 'xbeed: opening serial %s:%s' % (self.port, self.baudrate))
+            log.debug( 'opening serial %s:%s' % (self.port, self.baudrate))
             self.serial = self.serial_type(self.port, self.baudrate, timeout=0)
             if not self.monitored:
                 gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
@@ -100,8 +96,7 @@ class XBeeDaemon(dbus.service.Object):
             # Stop trying to reconnect
             return False
         except SerialException, e:
-            log.debug( e)
-            #log.debug('Failed opening port, retrying... %s' % e)
+            log.debug('Failed opening port, retrying...')
             # Re-schedule another attempt to connect
             return True
             
@@ -374,7 +369,7 @@ def run(conf='/etc/turk/turk.yml'):
         try:
             conf = yaml.load(open(conf, 'rU'))['xbeed']
         except Exception:
-            log.debug( 'xbeed: failed opening configuration file "%s"' % (conf))
+            log.debug( 'failed opening configuration file "%s"' % (conf))
             exit(1)
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)

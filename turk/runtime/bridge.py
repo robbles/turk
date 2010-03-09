@@ -6,6 +6,10 @@ import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 import yaml
 import os
+import turk
+from turk import get_config
+import urllib, urllib2
+import logging
 
 from twisted.internet import glib2reactor
 glib2reactor.install()
@@ -22,24 +26,12 @@ with warnings.catch_warnings():
     from twisted.internet import reactor
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
-import turk
-from turk import get_config
-import urllib, urllib2
+
+log = turk.init_logging('bridge')
 
 server =    ('skynet.local', 5222)
 jid =       JID("platform@skynet.local")
 password =  'password'
-
-
-def debug(func):
-    name = func.__name__
-    def wrapper(*args, **kwargs):
-        if func.func_code.co_code in ['d\x00\x00S','d\x01\x00S']:
-            print '# Bridge: %s #' % name
-        else:
-            print '[ Bridge: %s ]' % name
-        return func(*args, **kwargs)
-    return wrapper
 
 
 class Bridge(dbus.service.Object):
@@ -68,6 +60,8 @@ class Bridge(dbus.service.Object):
         # Init worker subscriptions
         self.subscriptions = {}
 
+        log.debug('started')
+
 
     @dbus.service.method(dbus_interface=turk.TURK_BRIDGE_INTERFACE,
                          in_signature='sss', out_signature='')
@@ -76,11 +70,11 @@ class Bridge(dbus.service.Object):
         Publishes a new update via HTTP to all apps that have registered to
         this data source
         """
-        print 'Bridge: publishing update from %s - ' % (source)
+        log.debug('Bridge: publishing update from %s - ' % (source))
 
         source = int(source)
 
-        print 'subscriptions: ', self.subscriptions
+        log.debug('subscriptions: %s'% self.subscriptions)
         if source in self.subscriptions:
             for app in self.subscriptions[source]:
                 try:
@@ -92,13 +86,13 @@ class Bridge(dbus.service.Object):
                     response = urllib2.urlopen(request, timeout=1)
                     page = response.read(100)
 
-                    print 'Bridge: successfully updated app %d' % (app) 
-                    print page
+                    log.debug('Bridge: successfully updated app %d' % (app) )
+                    log.debug(page)
 
                 except urllib2.HTTPError, e:
-                    print 'PublishUpdate: HTTP error %d' % e.getcode()
+                    log.debug('PublishUpdate: HTTP error %d' % e.getcode())
                 except Exception, e:
-                    print 'PublishUpdate: ', e
+                    log.debug('PublishUpdate: %s'% e)
                     
     def updateConfig(self, type, id, config, app):
         """
@@ -115,16 +109,16 @@ class Bridge(dbus.service.Object):
         """
         Registers app to be notified of events coming from service
         """
-        print 'registerObserver: service:%s app:%s' % (service, app)
+        log.debug('registerObserver: service:%s app:%s' % (service, app))
         if service in self.subscriptions:
             if app not in self.subscriptions[service]:
                 self.subscriptions[service].append(app)
-                print 'Added subscription to service %s for app %s' % (service, app)
+                log.debug('Added subscription to service %s for app %s' % (service, app))
             else:
-                print 'App %d is already subscribed to service %d' % (app, service)
+                log.debug('App %d is already subscribed to service %d' % (app, service))
         else:
             self.subscriptions[service] = [app]
-            print 'Added subscription to service %s for app %s' % (service, app)
+            log.debug('Added subscription to service %s for app %s' % (service, app))
 
     
     def requireService(self, type, service, app):
@@ -132,16 +126,16 @@ class Bridge(dbus.service.Object):
         Notifies Spawner that service needs to be started or already running.
         Forwards any error notifications to the server through XMPP
         """
-        print 'requireService: service:%s app:%s' % (service, app)
+        log.debug('requireService: service:%s app:%s' % (service, app))
         try: 
             spawner = self.bus.get_object(turk.TURK_SPAWNER_SERVICE, '/Spawner')
             spawner.requireService(type, service, app, 
                     reply_handler=lambda:None, error_handler=self.serviceFail)
         except dbus.DBusException, e:
-            print e
+            log.debug(e)
 
     def serviceFail(self, exception):
-        print 'Bridge: failed to start require service: %s' % exception
+        log.debug('Bridge: failed to start require service: %s' % exception)
 
     @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='')
     def BridgeStarted(self):
@@ -161,13 +155,13 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         self.bridge = bridge
         self.stream = stream
 
-    @debug
     def connectionInitialized(self):
         """
         Called right after connecting to the XMPP server. Sets up handlers
         and subscriptions and sends out presence notifications
         """
 
+        log.debug('connectionInitialized')
         PresenceClientProtocol.connectionInitialized(self)
         RosterClientProtocol.connectionInitialized(self)
 
@@ -202,9 +196,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         """
         Called when any data is received
         """
-        print '#########################'
-        print element.toXml()
-        print '#########################'
+        log.debug(element.toXml())
 
     
     def send(self, element):
@@ -232,19 +224,19 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         text = str(message.body)
         type = message.getAttribute('type')
 
-        print "BridgeXMPPHandler: received a '%s' message: '%s'" % (type, text)
+        log.debug("BridgeXMPPHandler: received a '%s' message: '%s'" % (type, text))
 
-    @debug 
     def onRequire(self, message):
         """
         Called when Turk require element(s) are received
         """
+        log.debug('require stanza received')
         for service in xpath.queryForNodes(self.REQUIRE + "/service", message):
             require = service.parent
             id = int(str(service))
             app = int(require['app'])
             type = service['type']
-            print 'service %s required for app %s' % (id, app)
+            log.debug('service %s required for app %s' % (id, app))
 
             # Check for and/or start the service
             self.bridge.requireService(type, id, app)
@@ -252,35 +244,35 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
             # Register app to receive updates as well
             self.bridge.registerObserver(id, app)
 
-    @debug 
     def onRegister(self, message):
         """
         Called when Turk register element(s) are received
         """
+        log.debug('register stanza received')
         for service in xpath.queryForNodes(self.REGISTER + "/service", message):
             register = service.parent
             id = int(str(service))
             app = int(register['app'])
-            print 'app %s registering to service %s' % (id, app)
+            log.debug('app %s registering to service %s' % (id, app))
             self.bridge.registerObserver(id, app)
 
-    @debug 
     def onUpdate(self, message):
         """
         Called when Turk update element(s) are received
         """
+        log.debug('update stanza received')
         for update in xpath.queryForNodes(self.UPDATE, message):
             try:
                 type = update['type']
                 dest = int(update['to'])
                 source = int(update['from'])
-                print 'got a update of type %s' % type
+                log.debug('got a update of type %s' % type)
 
                 # Send the update to the driver
                 self.bridge.updateConfig(type, dest, update.toXml(), source)
 
             except Exception, e:
-                print 'Error parsing update XML: ', e
+                log.debug('Error parsing update XML: %s' % e)
 
     
     def subscribeReceived(self, entity):
@@ -306,7 +298,7 @@ class ConfigFile(dbus.service.Object):
     @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='ts')
     def NewDriverConfig(self, id, config):
         self.config = config
-        print self.path, 'updated with new config:', config.replace('\n','')
+        log.debug('%s updated with new config: %s' % (self.path, config.replace('\n','')))
 
     @dbus.service.method(dbus_interface=turk.TURK_CONFIG_INTERFACE,
                          in_signature='', out_signature='s')
@@ -319,8 +311,11 @@ def run(conf='/etc/turk/turk.yml', daemon=False):
         try:
             conf = yaml.load(open(conf, 'rU'))['bridge']
         except Exception:
-            print 'Bridge: failed opening configuration file "%s"' % (conf)
+            log.debug('Bridge: failed opening configuration file "%s"' % (conf))
             exit(1)
+
+    if not get_config('bridge.debug', conf):
+        log.setLevel(logging.WARNING)
 
     jid = JID(get_config('bridge.username', conf))
 

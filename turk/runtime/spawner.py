@@ -17,10 +17,9 @@ import dbus.service
 import dbus.mainloop.glib
 import yaml
 import turk
+from turk import get_config
 
-logging.basicConfig()
-log = logging.getLogger('spawner')
-log.setLevel(logging.DEBUG)
+log = turk.init_logging('spawner')
 
 class DriverSpawner(dbus.service.Object):
     
@@ -117,15 +116,13 @@ class DriverSpawner(dbus.service.Object):
         """ Starts a driver and manages it.  """
         log.debug('trying to run driver "%s" for device %d' % (driver, device_id))
 
-        print device_id, driver, dict(env)
-
         self.start_driver(device_id, driver, dict(env))
         
     @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='tta(ss)', out_signature='')
     def StartDriverByID(self, device_id, driver_id, env):
         """ Starts a driver and manages it.  """
-        log.debug('trying to run driver %d' % driver_id)
-        print device_id, driver_id, dict(env)
+        log.debug('trying to run driver %d for device %d' % (driver, device_id))
+        raise NotImplementedError
 
 
 def get_spawner(bus=None, path='/Spawner'):
@@ -133,7 +130,7 @@ def get_spawner(bus=None, path='/Spawner'):
     Returns a D-Bus proxy for the Spawner 
     """
     if not bus:
-        bus = getattr(dbus, turk.get_config('global.bus'))()
+        bus = getattr(dbus, get_config('global.bus'))()
 
     return bus.get_object(turk.TURK_SPAWNER_SERVICE, '/Spawner')
 
@@ -156,16 +153,19 @@ def run(conf='/etc/turk/turk.yml'):
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    bus_label = turk.get_config('global.bus', conf)
+    bus_label = get_config('global.bus', conf)
     try:
         bus = getattr(dbus, bus_label)()
     except:
-        default_bus = turk.get_config('global.bus')
+        default_bus = get_config('global.bus')
         log.warning("Failed to access bus named %s, using default: %s" % (bus_label, default_bus))
         bus = getattr(dbus, default_bus)()
 
-    drivers = turk.get_config('spawner.drivers', conf)
-    autostart = turk.get_config('spawner.autostart', conf)
+    if not get_config('spawner.debug', conf):
+        log.setLevel(logging.WARNING)
+
+    drivers = get_config('spawner.drivers', conf)
+    autostart = get_config('spawner.autostart', conf)
     
     spawner = DriverSpawner(bus, drivers, autostart)
     signal.signal(signal.SIGTERM, spawner.shutdown)
