@@ -322,12 +322,12 @@ def run(conf='/etc/turk/turk.yml', daemon=False):
             print 'Bridge: failed opening configuration file "%s"' % (conf)
             exit(1)
 
-    jid = JID(get_config(conf, 'bridge.username'))
+    jid = JID(get_config('bridge.username', conf))
 
-    bus = getattr(dbus, get_config(conf, 'bridge.bus'))()
+    bus = getattr(dbus, get_config('global.bus', conf))()
 
-    server, port = get_config(conf, 'bridge.server'), get_config(conf, 'bridge.port')
-    password = get_config(conf, 'bridge.password')
+    server, port = get_config('bridge.server', conf), get_config('bridge.port', conf)
+    password = get_config('bridge.password', conf)
 
     bridge = Bridge(server, port, jid, password, bus)
     reactor.run()

@@ -4,6 +4,7 @@ import dbus
 import dbus.mainloop.glib
 from turk.xbeed import xbeed
 from xml.dom.minidom import parseString
+import turk
 
 DRIVER_ID = 6
 
@@ -85,9 +86,10 @@ if __name__ == '__main__':
     import os
     device_id = int(os.getenv('DEVICE_ID'))
     device_addr = int(os.getenv('DEVICE_ADDRESS'), 16)
+    bus = os.getenv('BUS', turk.get_config('global.bus'))
     print "RGB Lamp driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = RGBLamp(device_id, device_addr, dbus.SessionBus())
+    driver = RGBLamp(device_id, device_addr, getattr(dbus, bus)())
     driver.run()
 
     

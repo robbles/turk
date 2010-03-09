@@ -6,9 +6,10 @@ from turk.xbeed.xbeed import get_daemon
 from xml.dom.minidom import parseString
 from ntplib import NTPClient
 from datetime import datetime
+import turk
 
 DRIVER_ID = 8
-SYNC_TIME = 5000
+SYNC_TIME = 1000 * 60 * 10 # Every 10 minutes (in ms)
 TIME_SERVER = 'pool.ntp.org'
 
 """
@@ -72,7 +73,7 @@ class PixelClock(dbus.service.Object):
         if not time:
             req = NTPClient().request(TIME_SERVER)
             time = datetime.fromtimestamp(req.tx_time)
-            hour = 12 if time.hour == 0 else time.hour % 12
+            hour = 12 if ((time.hour % 12) == 0) else (time.hour % 12)
             minute, second, pm = time.minute, time.second, (time.hour > 11)
         else:
             hour, minute, second, pm = time
@@ -149,9 +150,11 @@ if __name__ == '__main__':
         print 'PixelClock: DEVICE_ADDRESS not provided or invalid'
         exit(-1)
 
+    bus = os.getenv('BUS', turk.get_config('global.bus'))
+
     print "Pixel Clock driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = PixelClock(device_id, device_addr, dbus.SystemBus())
+    driver = PixelClock(device_id, device_addr, getattr(dbus, bus)())
     driver.run()
 
     

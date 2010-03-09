@@ -125,9 +125,11 @@ if __name__ == '__main__':
         print 'interacTable: error - DEVICE_ID is not set'
         exit(-1)
 
+    bus = os.getenv('BUS', turk.get_config('global.bus'))
+
     print "interacTable driver started... driver id: %u" % device_id
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = InteracTable(device_id, 3333, dbus.SessionBus())
+    driver = InteracTable(device_id, 3333, getattr(dbus, bus)())
     driver.run()
 
     

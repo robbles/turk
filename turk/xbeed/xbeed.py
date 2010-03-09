@@ -33,8 +33,9 @@ XBEED_INTERFACE = 'org.turkinnovations.xbeed.XBeeInterface'
 XBEED_DAEMON_OBJECT = '/XBeeInterfaces/%s'
 XBEED_MODULE_OBJECT = '/XBeeModules/%X'
 
-logging.basicConfig(level=logging.DEBUG)
-log = logging.getLogger(name='xbeed')
+logging.basicConfig()
+log = logging.getLogger('xbeed')
+log.setLevel(logging.DEBUG)
 
 class XBeeDaemon(dbus.service.Object):
     """
@@ -80,26 +81,26 @@ class XBeeDaemon(dbus.service.Object):
 
     def connect(self, disable_first=True):
         """ Disconnects the current serial port and continually attempts to reconnect """
-        print 'xbeed: trying to connect'
+        log.debug( 'xbeed: trying to connect')
         if disable_first:
             log.debug('Disconnecting serial port...')
             self.serial.close()
             self.serial.write = lambda *args: None
 
         try:
-            print 'xbeed: opening serial', self.port, self.baudrate
+            log.debug( 'xbeed: opening serial %s:%s' % (self.port, self.baudrate))
             self.serial = self.serial_type(self.port, self.baudrate, timeout=0)
             if not self.monitored:
                 gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
                 self.monitored = True
-            print 'serial connected'
+            log.debug( 'serial connected')
             log.debug('Serial successfully connected!')
 
             self.connected = True
             # Stop trying to reconnect
             return False
         except SerialException, e:
-            print e
+            log.debug( e)
             #log.debug('Failed opening port, retrying... %s' % e)
             # Re-schedule another attempt to connect
             return True
@@ -337,19 +338,32 @@ def unescape(data):
 
 
 def get_daemon(name, bus):
+    """
+    Returns a proxy object corresponding to the XBeeDaemon of the given name.
+    on the given bus
+    """
     return bus.get_object(XBEED_SERVICE, XBEED_DAEMON_OBJECT % name)
   
 def get_module(hw_addr, bus):
+    """
+    Returns a proxy object representing the XBeeModule with the given hardware address.
+    """
     return bus.get_object(XBEED_SERVICE, XBEED_MODULE_OBJECT % hw_addr)
         
+def send_data(xbee, rf_data, hw_addr, frame_id):
+    """
+    An alias for xbee.send_data that converts the arguments to the correct D-Bus types first.
+    Sends data to an XBee module on the PAN.
+    """
+    return xbee.SendData(dbus.ByteArray(rf_data), dbus.UInt64(hw_addr), frame_id)
+
 def fake_data(name, bus, hw_addr, data):
+    """
+    Fakes an incoming packet from a given XBee module. Useful for debugging drivers.
+    """
     daemon = get_daemon(name, bus)
     daemon.FakeReceivedData(dbus.ByteArray(data), dbus.UInt64(hw_addr))
 
-def print_hex(data):
-    for byte in data:
-        log.debug('0x%X ' % ord(byte),)
-     
 
 BUS_NAME = None
 
@@ -360,15 +374,15 @@ def run(conf='/etc/turk/turk.yml'):
         try:
             conf = yaml.load(open(conf, 'rU'))['xbeed']
         except Exception:
-            print 'xbeed: failed opening configuration file "%s"' % (conf)
+            log.debug( 'xbeed: failed opening configuration file "%s"' % (conf))
             exit(1)
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    bus = getattr(dbus, get_config(conf, 'xbeed.bus'))()
+    bus = getattr(dbus, get_config('global.bus', conf))()
     BUS_NAME = dbus.service.BusName(XBEED_SERVICE, bus)
     
-    daemon = XBeeDaemon(*get_configs(conf, ('name', 'port', 'escaping', 'baudrate'), 'xbeed'))
+    daemon = XBeeDaemon(*get_configs(('name', 'port', 'escaping', 'baudrate'), conf, 'xbeed'))
 
     mainloop = gobject.MainLoop()
     mainloop.run()     

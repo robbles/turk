@@ -21,58 +21,54 @@ TURK_CONFIG_NAMESPACE = "http://turkinnovations.com/protocol/1.0/config"
 
 # Default values for config (used when keys are left out)
 DEFAULT = {
+    'global': {
+        'bus': 'SessionBus',
+    },
     'turkctl': {
         'pidfile': '/etc/turk/turk.pid',
-        'daemon': False,
     },
     'bridge': {
         'server': 'macpro.local',
         'port': 5222,
         'username': 'platform@macpro.local',
         'password': 'password',
-        'bus': 'SessionBus',
-        'daemon': False,
         'debug': True,
     },
     'spawner': {
-        'daemon': False,
-        'debug': False,
         'autostart': [],
         'drivers': '/usr/share/turk/drivers',
-        'bus': 'SessionBus',
+        'debug': False,
     },
     'xbeed': {
         'name': 'xbee0',
-        'bus': 'SessionBus',
         'port': '/dev/ttyUSB0',
         'baudrate': 9600,
         'escaping': True,
         'debug': True,
-        'daemon': False,
     }
 }
 
-def get_config(conf, key):
+def get_config(key, conf=DEFAULT):
     """
     Uses a dot-separated string to look up values from the configuration file.
     Falls back on the default values if not found.
     """
-    value = conf
+    temp = conf
     try:
         for query in key.split('.'):
-            value = value.__getitem__(query)
-        return value
+            temp = temp.__getitem__(query)
+        return temp
     except Exception, e:
-        if conf is not DEFAULT:
-            return get_config(DEFAULT, key)
+        if conf != DEFAULT:
+            return get_config(key)
         else:
-            raise KeyError(query)
+            raise KeyError(key)
 
-def get_configs(conf, keys, prefix=''):
+def get_configs(keys, conf=DEFAULT, prefix=''):
     all = []
     for key in keys:
-        all.append(get_config(conf, '.'.join([prefix, key])))
-    return all
+        all.append(get_config('.'.join([prefix, key]), conf))
+    return tuple(all)
 
 
 

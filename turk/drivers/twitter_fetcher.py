@@ -28,10 +28,10 @@ TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
 
 class TwitterFeed(dbus.service.Object):
-    def __init__(self, app_id):
-        dbus.service.Object.__init__(self, dbus.SystemBus(), '/Workers/TwitterFeed/%d' % app_id)
+    def __init__(self, app_id, bus):
+        dbus.service.Object.__init__(self, bus, '/Workers/TwitterFeed/%d' % app_id)
         self.app_id = app_id
-        self.bus = dbus.SystemBus()
+        self.bus = bus
 
         self.last_id = 0
         self.timeline = 'global'
@@ -137,9 +137,11 @@ if __name__ == '__main__':
         print 'TwitterFeed: error parsing environment variables'
         exit(1)
 
+    bus = os.getenv('BUS', turk.get_config('global.bus'))
+
     print "TwitterFeed driver started... app id: %u" % (app_id)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = TwitterFeed(app_id)
+    driver = TwitterFeed(app_id, getattr(dbus, bus)())
     driver.run()
 
     

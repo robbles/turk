@@ -22,7 +22,7 @@ def start(conf):
     """
     Starts the Turk Core as a background process. 
     """
-    pidfile_path = get_config(conf, 'turkctl.pidfile')
+    pidfile_path = get_config('turkctl.pidfile', conf)
     
     if os.path.exists(pidfile_path):
         print 'File "%s" exists - Is Turk Core already running?' % pidfile_path
@@ -43,7 +43,7 @@ def start(conf):
             bridge = multiprocessing.Process(target=run_bridge, args=(conf,))
             bridge.start()
 
-            if hasattr(conf, 'xbeed'):
+            if conf.has_key('xbeed'):
                 print 'starting xbeed...'
                 xbeed = multiprocessing.Process(target=run_xbeed, args=(conf,))
                 xbeed.start()
@@ -57,7 +57,7 @@ def start(conf):
             print 'Turk is shutting down...'
             spawner.terminate()
             bridge.terminate()
-            if hasattr(conf, 'xbeed'):
+            if conf.has_key('xbeed'):
                 xbeed.terminate()
             exit(0)
 
@@ -81,7 +81,7 @@ def stop(conf):
     """
     print 'Stopping Turk'
 
-    pidfile_path = get_config(conf, 'turkctl.pidfile')
+    pidfile_path = get_config('turkctl.pidfile', conf)
 
     if not os.path.exists(pidfile_path):
         print 'Couldn\'t find pidfile! Is Turk Core REALLY running?'
@@ -99,7 +99,7 @@ def stop(conf):
 def clean(conf):
     """Deletes any data associated with improperly stopped Turk Core"""
 
-    pidfile_path = get_config(conf, 'turkctl.pidfile')
+    pidfile_path = get_config('turkctl.pidfile', conf)
 
     if os.path.exists(pidfile_path):
         print 'Removing old pidfile...'

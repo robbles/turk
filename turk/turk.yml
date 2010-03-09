@@ -1,39 +1,36 @@
+# Global configuration
+global:
+    bus: SessionBus
 
-# core launcher (corectl.py)
+# control interface and launcher (corectl.py)
 turkctl:
     pidfile: 'turk.pid'
-    daemon: False
 
-# bridge (runtime/bridge.py)
+# bridge (drivers <-> XMPP <-> apps)
 bridge:
-    server: macpro.local
+    server: localhost
     port: 5222
-    username: platform@macpro.local
+    username: platform@localhost
     password: password
-    bus: SessionBus
-    daemon: False
     debug: True
 
-# spawner (runtime/spawner.py)
+# spawner (starts/stops and manages drivers)
 spawner:
-    daemon: False
-    bus: SessionBus
-    debug: False
-    # Add drivers that should be automatically started here with their parameters
+    # Add drivers that should be automatically started here along with their parameters
     autostart: [
-        {'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD', 'DEVICE_ID':'6'}},
-#{'filename':'interactable.py', 'env':{'DEVICE_ID':'9'}},
-# {'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A', 'DEVICE_ID':'8'}},
+        {'device_id': 6, 'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD'}, 'args': []},
+        {'device_id': 8, 'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A'}, 'args': []},
+        #{'device_id': 9, 'filename':'interactable.py', 'env':{}},
                 ]
     drivers: /usr/share/turk/drivers
+    debug: True
 
-# xbeed (xbeed/xbeed.py)
+# xbeed (handles XBee communication)
 xbeed:
     name: xbee0
-    bus: SessionBus
     port: '/dev/tty.usbserial-A9009hpT'
     baudrate: 9600
     escaping: True
     debug: True
-    daemon: False
 
+    
