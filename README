@@ -1,0 +1,19 @@
+Turk - the software framework for interfacing applications and devices to the
+Turk Web Interface.  Using XMPP (Jabber) IM accounts and the simple Turk XMPP
+protocol, this framework lets you create and automatically run simple plugins
+that interface devices and desktop software to web applications. Includes
+built-in support for interfacing to Digi XBee modules, serially connected
+Arduinos or similar microcontroller devices, and MIDI instruments.
+
+A simple explanation of how the framework works is as follows:
+
+* You develop a driver plugin that interfaces to your device/application/widget, written in any language that has bindings for D-Bus (pretty much any)
+* You create a web application that can send XMPP messages (this can be done easily with PHP, Python, or even Javascript!)
+* Two XMPP accounts are created on any server, one for the platform and one or more for your apps
+* Change the config file to use your XMPP accounts and start your driver (or start them remotely from the app!)
+* Run Turk!
+
+NOTE: You need dbus and python-dbus installed first. If there's no precompiled package for your system, get them from:
+http://www.freedesktop.org/wiki/Software/dbus
+http://dbus.freedesktop.org/releases/dbus-python/
+
