@@ -54,8 +54,8 @@ class Bridge(dbus.service.Object):
         client_svc = TCPClient(server, port, factory)
         client_svc.startService()
 
-        # Setup config files
-        self.configs = {}
+        # Setup driver registry
+        self.drivers = {}
 
         # Init worker subscriptions
         self.subscriptions = {}
@@ -94,15 +94,12 @@ class Bridge(dbus.service.Object):
                 except Exception, e:
                     log.debug('PublishUpdate: %s'% e)
                     
-    def updateConfig(self, type, id, config, app):
-        """
-        Associates a new config entry with it's driver name, or updates
-        the corresponding driver config if it already exists
-        """
-        if id in self.configs:
-            self.configs[id].NewDriverConfig(id, config)
-        else:
-            self.configs[id] = ConfigFile(self.bus, type, id, config, app)
+    def signalUpdate(self, driver, app, update):
+        """ Sends a signal to indicate an update for a driver has been received.  """
+        if driver not in self.drivers:
+            self.drivers[driver] = Driver(self.bus, driver)
+
+        self.drivers[driver].Update(driver, app, update)
 
     
     def registerObserver(self, service, app):
@@ -263,13 +260,12 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         log.debug('update stanza received')
         for update in xpath.queryForNodes(self.UPDATE, message):
             try:
-                type = update['type']
-                dest = int(update['to'])
-                source = int(update['from'])
-                log.debug('got a update of type %s' % type)
+                driver = int(update['to'])
+                app = int(update['from'])
+                log.debug('got an update for driver#%s from app#%s' % (driver, app))
 
                 # Send the update to the driver
-                self.bridge.updateConfig(type, dest, update.toXml(), source)
+                self.bridge.signalUpdate(driver, app, update.toXml())
 
             except Exception, e:
                 log.debug('Error parsing update XML: %s' % e)
@@ -283,27 +279,22 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         self.subscribed(entity)
 
 
-class ConfigFile(dbus.service.Object):
-    def __init__(self, bus, type, id, config, app):
-        if type == 'worker':
-            self.path = '/Bridge/ConfigFiles/Workers/%d/%d' % (app, id)
-        else:
-            self.path = '/Bridge/ConfigFiles/Drivers/%d' % (id)
+class Driver(dbus.service.Object):
+    def __init__(self, bus, id):
+        self.path = '/Bridge/Drivers/%d' % (id)
         dbus.service.Object.__init__(self, bus, self.path)
         self.type = type
         self.id = id
-        self.config = config
-        self.NewDriverConfig(id, config)
+        self.last_update = ''
 
-    @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='ts')
-    def NewDriverConfig(self, id, config):
-        self.config = config
-        log.debug('%s updated with new config: %s' % (self.path, config.replace('\n','')))
+    @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='tts')
+    def Update(self, driver, app, update):
+        self.last_update = update
+        log.debug('%s received an update: %s' % (self.path, update.replace('\n','')))
 
-    @dbus.service.method(dbus_interface=turk.TURK_CONFIG_INTERFACE,
-                         in_signature='', out_signature='s')
-    def GetConfig(self):
-        return self.config
+    @dbus.service.method(dbus_interface=turk.TURK_DRIVER_INTERFACE, in_signature='', out_signature='s')
+    def GetLastUpdate(self):
+        return self.last_update
 
 
 def run(conf='/etc/turk/turk.yml', daemon=False):

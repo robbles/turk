@@ -30,8 +30,8 @@ class InteracTable(dbus.service.Object):
         self.device_id = device_id
         self.bus = bus
 
-        listen = '/Bridge/ConfigFiles/Drivers/%d' % (self.device_id)
-        self.bus.add_signal_receiver(self.new_config, path=listen)
+        listen = '/Bridge/Drivers/%d' % (self.device_id)
+        self.bus.add_signal_receiver(self.new_update, path=listen)
         print 'interacTable: listening for %s' % listen
 
         self.tracking = tuio.Tracking(host='', port=port)
@@ -87,7 +87,7 @@ class InteracTable(dbus.service.Object):
         print 'interacTable: error posting data to app', ex
 
 
-    def new_config(self, driver, xml):
+    def new_update(self, driver, app, xml):
         print 'new xml config received:'
         print xml
         try:

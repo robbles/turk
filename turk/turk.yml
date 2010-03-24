@@ -9,9 +9,9 @@ turkctl:
 
 # bridge (drivers <-> XMPP <-> apps)
 bridge:
-    server: localhost
+    server: macpro.local
     port: 5222
-    username: platform@localhost
+    username: platform@macpro.local
     password: password
     debug: True
 

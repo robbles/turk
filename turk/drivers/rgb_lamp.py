@@ -11,10 +11,15 @@ DRIVER_ID = 6
 """
 ### Sample config ###
 
+## XMPP commands ##
 <command type="color">#63A7E7</command>
+<command type="on" />
+<command type="off> />
+<command type="shift" />
+<command type="noshift" />
 
 ### Sent to device ###
-"[\x63\xA7\xE7]"
+"[\x63\xA7\xE7#]" (for color command)
 
 """
 
@@ -35,8 +40,8 @@ class RGBLamp(dbus.service.Object):
                                 dbus_interface=xbeed.XBEED_INTERFACE,
                                 signal_name="RecievedData",
                                 byte_arrays=True)
-        listen = '/Bridge/ConfigFiles/Drivers/%d' % (self.device_id)
-        self.bus.add_signal_receiver(self.new_config, path=listen)
+        listen = '/Bridge/Drivers/%d' % (self.device_id)
+        self.bus.add_signal_receiver(self.update, path=listen)
 
         print 'RGB Lamp: listening for %s' % listen
 
@@ -44,7 +49,7 @@ class RGBLamp(dbus.service.Object):
         """ Called when device sends us data. Might happen when device is reset """
         print 'RGB Lamp: Received %d bytes from device' % len(rf_data)
         
-    def new_config(self, driver, xml):
+    def update(self, driver, app, xml):
         print 'new xml config received:'
         print xml
         try:
@@ -59,11 +64,21 @@ class RGBLamp(dbus.service.Object):
                 red, green, blue = [int(color[i:i+2], 16) for i in range(0, 6, 2)]
 
                 # Build a message of the form "[RGB]"
-                msg = ''.join(['[', chr(red), chr(green), chr(blue), ']'])
+                msg = ''.join(['[', chr(red), chr(green), chr(blue), '#]'])
 
                 # Send it to the device
                 print 'setting color to #%02X%02X%02X' % (red, green, blue)
                 self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
+
+            elif ctype in ['on', 'off', 'shift', 'noshift']:
+                command_byte = {
+                        'on' : '@',
+                        'off' : '*',
+                        'shift' : '$',
+                        'noshift' : '|' }[ctype]
+                msg = ''.join(['[\x00\x00\x00', command_byte, ']'])
+                print 'sending command %s: %s' % (command_byte, ctype)
+                self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 2)
 
         except Exception, e:
             # emit an error signal for bridge

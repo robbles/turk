@@ -16,19 +16,22 @@ TIME_SERVER = 'pool.ntp.org'
 ### Sample config ###
 
 <command type="time">1264027305.8130212</command>
-
 <command type="timezone">-8</command>
+<command type="on" />
+<command type="off" />
+<command type="color">#1D96B8</command>
+<command type="text">TURK</command>
 
 ### Sent to device every SYNC_TIME seconds ###
-'[' + H + M + S + AM/PM + '@'
+'[' + H + M + S + AM/PM + '%' + ']'
 
 """
 
-from turk import *
-
-SET_TIME_COMMAND = '[%s%s%s%s@'
-SET_TEXT_COMMAND = '[%s#'
-SET_COLOR_COMMAND = '[%s%s%s%s$'
+SET_TIME_COMMAND = '[%s%s%s%s%%]'
+SET_TEXT_COMMAND = '[%s$]'
+SET_COLOR_COMMAND = '[%s%s%s\x00#]'
+SET_ON_COMMAND = '[\x00\x00\x00\x00@]'
+SET_OFF_COMMAND = '[\x00\x00\x00\x00*]'
 
 
 class PixelClock(dbus.service.Object):
@@ -44,7 +47,7 @@ class PixelClock(dbus.service.Object):
         self.bus = bus
         self.xbee = get_daemon('xbee0', self.bus)
 
-        listen = '/Bridge/ConfigFiles/Drivers/%d' % (self.device_id)
+        listen = '/Bridge/Drivers/%d' % (self.device_id)
         self.bus.add_signal_receiver(self.update, path=listen)
         print 'Pixel Clock: listening for %s' % listen
 
@@ -91,7 +94,7 @@ class PixelClock(dbus.service.Object):
         self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
 
 
-    def update(self, driver, xml):
+    def update(self, driver, app, xml):
         """
         Handler called when an update is received from the Turk server through XMPP.
         """
@@ -116,9 +119,24 @@ class PixelClock(dbus.service.Object):
                 self.timezone = int(command.childNodes[0].nodeValue)
 
             elif ctype == 'text':
-                # Parse time value
+                # Send 4-character string
                 text = command.childNodes[0].nodeValue[:4]
                 self.set_text(text)
+
+            elif ctype in ['on', 'off']:
+                command = { 'on' : SET_ON_COMMAND, 'off' : SET_OFF_COMMAND }[ctype]
+                print 'sending %s command' % (ctype)
+                self.xbee.SendData(dbus.ByteArray(command), dbus.UInt64(self.device_addr), 2)
+
+            elif ctype == 'color':
+                # Parse hex color into RGB values
+                color = command.childNodes[0].nodeValue.lstrip('# \n\r')
+                red, green, blue = [int(color[i:i+2], 16) for i in range(0, 6, 2)]
+
+                msg = SET_COLOR_COMMAND % (chr(red), chr(green), chr(blue))
+
+                print 'setting color to #%02X%02X%02X' % (red, green, blue)
+                self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
 
         except Exception, e:
             # emit an error signal for bridge
@@ -129,7 +147,7 @@ class PixelClock(dbus.service.Object):
         loop = gobject.MainLoop()
         loop.run()
 
-    @dbus.service.signal(dbus_interface=TURK_DRIVER_ERROR, signature='s') 
+    @dbus.service.signal(dbus_interface=turk.TURK_DRIVER_ERROR, signature='s') 
     def Error(self, message):
         """ Called when an error/exception occurs. Emits a signal for any relevant
             system management daemons and loggers """

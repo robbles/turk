@@ -28,9 +28,9 @@ TWITTER_MAX_REQUESTS = 100.0
 SLEEP_TIME = int(3600.0 / TWITTER_MAX_REQUESTS * 1000)
 
 class TwitterFeed(dbus.service.Object):
-    def __init__(self, app_id, bus):
-        dbus.service.Object.__init__(self, bus, '/Workers/TwitterFeed/%d' % app_id)
-        self.app_id = app_id
+    def __init__(self, driver_id, bus):
+        dbus.service.Object.__init__(self, bus, '/Drivers/TwitterFeed/%d' % driver_id)
+        self.driver_id = driver_id
         self.bus = bus
 
         self.last_id = 0
@@ -38,8 +38,8 @@ class TwitterFeed(dbus.service.Object):
 
         self.api = twitter.Api()
 
-        listen = '/Bridge/ConfigFiles/Workers/%d/%d' % (self.app_id, DRIVER_ID)
-        self.bus.add_signal_receiver(self.new_config, path=listen)
+        listen = '/Bridge/Drivers/%d' % (self.driver_id)
+        self.bus.add_signal_receiver(self.update, path=listen)
 
         gobject.timeout_add(SLEEP_TIME, self.poll_server)
 
@@ -93,7 +93,7 @@ class TwitterFeed(dbus.service.Object):
         except Exception, e:
             print 'TwitterFeed: error converting data', e
 
-    def new_config(self, driver, xml):
+    def update(self, driver, app, xml):
         print 'new xml config received: %s' % xml
         tree = parseString(xml)
         try:
@@ -131,7 +131,7 @@ class TwitterFeed(dbus.service.Object):
 if __name__ == '__main__':
     import os
     try:
-        app_id = int(os.getenv('APP_ID'))
+        driver_id = int(os.getenv('DRIVER_ID'))
     except Exception:
         #TODO: find better way of returning error (dbus?)
         print 'TwitterFeed: error parsing environment variables'
@@ -139,9 +139,9 @@ if __name__ == '__main__':
 
     bus = os.getenv('BUS', turk.get_config('global.bus'))
 
-    print "TwitterFeed driver started... app id: %u" % (app_id)
+    print "TwitterFeed driver started... app id: %u" % (driver_id)
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    driver = TwitterFeed(app_id, getattr(dbus, bus)())
+    driver = TwitterFeed(driver_id, getattr(dbus, bus)())
     driver.run()
 
     

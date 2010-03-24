@@ -5,7 +5,7 @@ from setuptools import setup,find_packages
 
 setup (
     name = 'Turk',
-    version = '0.1',
+    version = '0.1.1',
     packages = find_packages(),
 
     install_requires=['twisted', 'pyserial', 'PyYAML', 'wokkel'],
@@ -16,19 +16,9 @@ setup (
     summary = 'Turk - the framework for interfacing applications and devices with the web',
     url = 'http://github.com/robbles/turk',
     license = 'MIT',
-    long_description= """
-Turk - the software framework for interfacing applications and devices to the
-Turk Web Interface.  Using XMPP (Jabber) IM accounts and the simple Turk XMPP
-protocol, this framework lets you create and automatically run simple plugins
-that interface devices and desktop software to web applications. Includes
-built-in support for interfacing to Digi XBee modules, serially connected
-Arduinos or similar microcontroller devices, and MIDI instruments.
-
-NOTE: You need dbus and python-dbus installed to use this. If there's no precompiled package for your system, get them from:
-http://www.freedesktop.org/wiki/Software/dbus
-http://dbus.freedesktop.org/releases/dbus-python/
-""",
-    classifiers=[
+    description = 'A framework for interfacing applications and devices with the web',
+    long_description = open('README').read(),
+    classifiers = [
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Developers',
