@@ -1,0 +1,3 @@
+recursive-include turk *.yml
+recursive-include turk/drivers *.py
+recursive-include turk/dbus *.conf
