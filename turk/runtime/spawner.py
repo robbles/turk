@@ -122,8 +122,12 @@ class DriverSpawner(dbus.service.Object):
     def StartDriverByID(self, device_id, driver_id, env):
         """ Starts a driver and manages it.  """
         log.debug('trying to run driver %d for device %d' % (driver, device_id))
-        raise NotImplementedError
 
+    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='', out_signature='a(t)')
+    def GetDriverList(self, device_id, driver, env):
+        """ Starts a driver and manages it.  """
+        log.debug('returning list of drivers')
+        raise NotImplementedError
 
 def get_spawner(bus=None, path='/Spawner'):
     """ 

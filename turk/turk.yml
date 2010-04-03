@@ -9,21 +9,23 @@ turkctl:
 
 # bridge (drivers <-> XMPP <-> apps)
 bridge:
-    server: macpro.local
+    server: YOUR.XMPP.SERVER
     port: 5222
-    username: platform@macpro.local
-    password: password
+    username: YOUR_XMPP_ID@YOUR.XMPP.SERVER
+    password: PASSWORD
     debug: True
 
 # spawner (starts/stops and manages drivers)
 spawner:
     # Add drivers that should be automatically started here along with their parameters
-    # minimum parameters are: device_id, filename
+    # minimum parameters are: device_id, filename, env, args
     autostart: [
-        {'device_id': 6, 'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD'}, 'args': []},
-        {'device_id': 8, 'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A'}, 'args': []},
+        #{'device_id': 6, 'filename':'rgb_lamp.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DADD'}, 'args': []},
+        #{'device_id': 8, 'filename':'pixel_clock.py', 'env':{'DEVICE_ADDRESS':'0x13A2004052DA9A'}, 'args': []},
+        #{'device_id': 1, 'filename':'tick.py', 'env': {}, 'args': []},
         #{'device_id': 9, 'filename':'interactable.py', 'env':{}},
                 ]
+    # Location of drivers (prefixed to all driver filenames)
     drivers: /usr/share/turk/drivers
     debug: True
 

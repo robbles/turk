@@ -57,7 +57,7 @@ class Bridge(dbus.service.Object):
         # Setup driver registry
         self.drivers = {}
 
-        # Init worker subscriptions
+        # Init driver subscriptions
         self.subscriptions = {}
 
         log.debug('started')
@@ -65,21 +65,22 @@ class Bridge(dbus.service.Object):
 
     @dbus.service.method(dbus_interface=turk.TURK_BRIDGE_INTERFACE,
                          in_signature='sss', out_signature='')
-    def PublishUpdate(self, type, update, source):
+    def PublishUpdate(self, type, update, driver):
         """
         Publishes a new update via HTTP to all apps that have registered to
-        this data source
+        this data driver
         """
-        log.debug('Bridge: publishing update from %s - ' % (source))
+        log.debug('Bridge: publishing update from %s - ' % (driver))
 
-        source = int(source)
+        driver = int(driver)
 
         log.debug('subscriptions: %s'% self.subscriptions)
-        if source in self.subscriptions:
-            for app in self.subscriptions[source]:
+        if driver in self.subscriptions:
+            for app in self.subscriptions[driver]:
                 try:
                     # build app URL
-                    url = turk.TURK_CLOUD_APP_POST.substitute(id=app)
+                    url = self.subscriptions[driver][app]
+                    log.debug('POSTing to url %s' % url)
                     # encode params
                     request = urllib2.Request(url, update)
                     # POST request
@@ -94,7 +95,7 @@ class Bridge(dbus.service.Object):
                 except Exception, e:
                     log.debug('PublishUpdate: %s'% e)
                     
-    def signalUpdate(self, driver, app, update):
+    def SignalUpdate(self, driver, app, update):
         """ Sends a signal to indicate an update for a driver has been received.  """
         if driver not in self.drivers:
             self.drivers[driver] = Driver(self.bus, driver)
@@ -102,37 +103,38 @@ class Bridge(dbus.service.Object):
         self.drivers[driver].Update(driver, app, update)
 
     
-    def registerObserver(self, service, app):
+    def registerObserver(self, driver, app, url):
         """
-        Registers app to be notified of events coming from service
+        Registers app to be notified of events coming from driver.
+        All updates will be POSTed to url with HTTP
         """
-        log.debug('registerObserver: service:%s app:%s' % (service, app))
-        if service in self.subscriptions:
-            if app not in self.subscriptions[service]:
-                self.subscriptions[service].append(app)
-                log.debug('Added subscription to service %s for app %s' % (service, app))
+        log.debug('registerObserver: driver:%s app:%s url:%s' % (driver, app, url))
+        if driver in self.subscriptions:
+            if app not in self.subscriptions[driver]:
+                self.subscriptions[driver][app] = url
+                log.debug('Added subscription to driver %s for app %s' % (driver, app))
             else:
-                log.debug('App %d is already subscribed to service %d' % (app, service))
+                log.debug('App %d is already subscribed to driver %d' % (app, driver))
         else:
-            self.subscriptions[service] = [app]
-            log.debug('Added subscription to service %s for app %s' % (service, app))
+            self.subscriptions[driver] = {app : url}
+            log.debug('Added subscription to driver %s for app %s' % (driver, app))
 
     
-    def requireService(self, type, service, app):
+    def requireService(self, driver, app):
         """
-        Notifies Spawner that service needs to be started or already running.
+        Notifies Spawner that driver needs to be started or already running.
         Forwards any error notifications to the server through XMPP
         """
-        log.debug('requireService: service:%s app:%s' % (service, app))
+        log.debug('requireService: driver:%s app:%s' % (driver, app))
         try: 
             spawner = self.bus.get_object(turk.TURK_SPAWNER_SERVICE, '/Spawner')
-            spawner.requireService(type, service, app, 
-                    reply_handler=lambda:None, error_handler=self.serviceFail)
+            spawner.requireService(type, driver, app, 
+                    reply_handler=lambda:None, error_handler=self.driverFail)
         except dbus.DBusException, e:
             log.debug(e)
 
-    def serviceFail(self, exception):
-        log.debug('Bridge: failed to start require service: %s' % exception)
+    def driverFail(self, exception):
+        log.debug('Bridge: failed to start require driver: %s' % exception)
 
     @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='')
     def BridgeStarted(self):
@@ -224,34 +226,29 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
         log.debug("BridgeXMPPHandler: received a '%s' message: '%s'" % (type, text))
 
     def onRequire(self, message):
-        """
-        Called when Turk require element(s) are received
-        """
+        """ Called when Turk require element(s) are received """
         log.debug('require stanza received')
-        for service in xpath.queryForNodes(self.REQUIRE + "/service", message):
-            require = service.parent
-            id = int(str(service))
+        for driver in xpath.queryForNodes(self.REQUIRE + "/driver", message):
+            require = driver.parent
+            id = int(str(driver))
             app = int(require['app'])
-            type = service['type']
-            log.debug('service %s required for app %s' % (id, app))
+            log.debug('driver %s required for app %s' % (id, app))
 
-            # Check for and/or start the service
-            self.bridge.requireService(type, id, app)
-
-            # Register app to receive updates as well
-            self.bridge.registerObserver(id, app)
+            # Check for and/or start the driver
+            self.bridge.requireService(id, app)
 
     def onRegister(self, message):
         """
         Called when Turk register element(s) are received
         """
         log.debug('register stanza received')
-        for service in xpath.queryForNodes(self.REGISTER + "/service", message):
-            register = service.parent
-            id = int(str(service))
+        for driver in xpath.queryForNodes(self.REGISTER + "/driver", message):
+            register = driver.parent
+            id = int(driver['id'])
             app = int(register['app'])
-            log.debug('app %s registering to service %s' % (id, app))
-            self.bridge.registerObserver(id, app)
+            url = register['url']
+            log.debug('app %s registering to driver %s' % (id, app))
+            self.bridge.registerObserver(id, app, url)
 
     def onUpdate(self, message):
         """
@@ -265,7 +262,7 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
                 log.debug('got an update for driver#%s from app#%s' % (driver, app))
 
                 # Send the update to the driver
-                self.bridge.signalUpdate(driver, app, update.toXml())
+                self.bridge.SignalUpdate(driver, app, update.toXml())
 
             except Exception, e:
                 log.debug('Error parsing update XML: %s' % e)
