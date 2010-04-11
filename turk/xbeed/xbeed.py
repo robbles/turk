@@ -52,7 +52,10 @@ class XBeeDaemon(dbus.service.Object):
 
         self.connected = False
         self.monitored = False
-        gobject.timeout_add(2000, self.connect, False)
+        
+        log.debug( 'trying to open serial port %s:%s' % (self.port, self.baudrate))
+        if self.connect(False):
+            gobject.timeout_add(2000, self.connect, False)
         
     def serial_read(self, fd, condition, *args):
         """ Called when there is data available from the serial port """
@@ -84,7 +87,6 @@ class XBeeDaemon(dbus.service.Object):
             self.serial.write = lambda *args: None
 
         try:
-            log.debug( 'opening serial %s:%s' % (self.port, self.baudrate))
             self.serial = self.serial_type(self.port, self.baudrate, timeout=0)
             if not self.monitored:
                 gobject.io_add_watch(self.serial.fileno(), gobject.IO_IN, self.serial_read)
@@ -96,7 +98,6 @@ class XBeeDaemon(dbus.service.Object):
             # Stop trying to reconnect
             return False
         except SerialException, e:
-            log.debug('Failed opening port, retrying...')
             # Re-schedule another attempt to connect
             return True
             

@@ -21,16 +21,33 @@ from turk import get_config
 
 log = turk.init_logging('spawner')
 
+class Driver(object):
+    """ Represents a driver process. Can be started and stopped. """
+    def __init__(self, device_id, path, env):
+        self.id = device_id
+        self.path = path
+        self.env = env
+        self.start()
+
+    def start(self):
+        """ Starts the process in the background """
+        self.process = subprocess.Popen(self.path, stdout=sys.stdout, env=self.env)
+
+    def stop(self):
+        """ Terminates the process """
+        self.process.terminate()
+
+
 class DriverSpawner(dbus.service.Object):
     
-    def __init__(self, bus, drivers, autostart=[]):
+    def __init__(self, bus, driver_dir, autostart=[]):
         self.bus = bus
         bus_name = dbus.service.BusName(turk.TURK_SPAWNER_SERVICE, bus)
         dbus.service.Object.__init__(self, bus_name, '/Spawner')
         self.managed_drivers = {}
-        self.drivers = drivers
+        self.driver_dir = driver_dir
 
-        # Start each driver after a delay to ensure all services are running
+        # Start all drivers after a delay to ensure all services are running
         for driver in autostart:
             gobject.timeout_add(2000, self.start_driver, driver['device_id'], driver['filename'], driver['env'])
 
@@ -45,14 +62,14 @@ class DriverSpawner(dbus.service.Object):
             path = filename
         else:
             # Relative driver names indicate they're installed in the drivers folder
-            path = ''.join([self.drivers, '/', filename])
+            path = ''.join([self.driver_dir, '/', filename])
 
         env['CONTEXT'] = 'SPAWNER'
         env['BUS'] = type(self.bus).__name__
         env['DEVICE_ID'] = str(device_id)
 
         try:
-            self.managed_drivers[device_id] = subprocess.Popen(path, stdout=sys.stdout, env=env)
+            self.managed_drivers[device_id] = Driver(device_id, path, env)
             log.debug('Autostarted driver for device %s' % (env['DEVICE_ID']))
         except Exception, e:
             log.debug('failed starting driver "%s": %s' % (filename, e))
@@ -84,7 +101,7 @@ class DriverSpawner(dbus.service.Object):
             log.debug("Couldn't fetch driver files - HTTP error %d" % err.getcode())
             return None
 
-        path = ''.join([self.drivers, '/', filename])
+        path = ''.join([self.driver_dir, '/', filename])
 
         if not os.path.exists(filename):
             driverfile = open(filename, 'wB')
@@ -101,7 +118,7 @@ class DriverSpawner(dbus.service.Object):
         log.debug('shutting down...')
         for device_id, driver in self.managed_drivers.iteritems():
             log.debug('terminating driver %d' % device_id)
-            driver.terminate()
+            driver.stop()
         
     @dbus.service.signal(dbus_interface=turk.TURK_SPAWNER_INTERFACE, signature='')
     def SpawnerStarted(self):
@@ -115,19 +132,30 @@ class DriverSpawner(dbus.service.Object):
     def StartDriverByName(self, device_id, driver, env):
         """ Starts a driver and manages it.  """
         log.debug('trying to run driver "%s" for device %d' % (driver, device_id))
-
         self.start_driver(device_id, driver, dict(env))
         
-    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='tta(ss)', out_signature='')
-    def StartDriverByID(self, device_id, driver_id, env):
-        """ Starts a driver and manages it.  """
-        log.debug('trying to run driver %d for device %d' % (driver, device_id))
+    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='t', out_signature='')
+    def RestartDriverByID(self, device_id):
+        """ Restarts a running driver identified by id """
+        log.debug('trying to restart driver %d' % (device_id))
+        if device_id in self.managed_drivers:
+            old = self.managed_drivers.pop(device_id)
+            old.stop()
+            self.managed_drivers[device_id] = Driver(device_id, old.path, old.env)
 
-    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='', out_signature='a(t)')
-    def GetDriverList(self, device_id, driver, env):
-        """ Starts a driver and manages it.  """
+    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='t', out_signature='')
+    def StopDriverByID(self, device_id):
+        """ Stops and removes a running driver identified by id """
+        log.debug('trying to stop driver %d' % (device_id))
+        if device_id in self.managed_drivers:
+            self.managed_drivers.pop(device_id).stop()
+
+    @dbus.service.method(dbus_interface=turk.TURK_SPAWNER_INTERFACE, in_signature='', out_signature='a(ts)')
+    def GetDriverList(self):
+        """ Returns an array of (id, driver executable) pairs for all running drivers """
         log.debug('returning list of drivers')
-        raise NotImplementedError
+        return [(id, os.path.basename(self.managed_drivers[id].path)) for id in self.managed_drivers.keys()]
+
 
 def get_spawner(bus=None, path='/Spawner'):
     """ 
@@ -168,10 +196,10 @@ def run(conf='/etc/turk/turk.yml'):
     if not get_config('spawner.debug', conf):
         log.setLevel(logging.WARNING)
 
-    drivers = get_config('spawner.drivers', conf)
+    driver_dir = get_config('spawner.drivers', conf)
     autostart = get_config('spawner.autostart', conf)
     
-    spawner = DriverSpawner(bus, drivers, autostart)
+    spawner = DriverSpawner(bus, driver_dir, autostart)
     signal.signal(signal.SIGTERM, spawner.shutdown)
     
     loop = gobject.MainLoop()
