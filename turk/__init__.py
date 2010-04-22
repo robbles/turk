@@ -1,5 +1,6 @@
 import string
 import logging
+import os
 
 # D-BUS services and interfaces
 TURK_BRIDGE_SERVICE = "org.turkinnovations.turk.Bridge"
@@ -16,16 +17,13 @@ TURK_XMPP_NAMESPACE = "http://turkinnovations.com/protocol"
 DEFAULT = {
     'global': {
         'bus': 'SessionBus',
+        'logfile': None,
     },
     'turkctl': {
         'pidfile': '/etc/turk/turk.pid',
         'debug': True,
     },
     'bridge': {
-        'server': 'macpro.local',
-        'port': 5222,
-        'username': 'platform@macpro.local',
-        'password': 'password',
         'debug': True,
     },
     'spawner': {
@@ -64,10 +62,14 @@ def get_configs(keys, conf=DEFAULT, prefix=''):
         all.append(get_config('.'.join([prefix, key]), conf))
     return tuple(all)
 
-def init_logging(module):
+
+def init_logging(module, conf=DEFAULT, debug=True):
     logging.basicConfig(format = '(%(levelname)s) %(name)s: %(message)s')
     log = logging.getLogger(module)
-    log.setLevel(logging.DEBUG)
+    if debug:
+        log.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.WARNING)
     return log
 
 

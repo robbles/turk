@@ -27,12 +27,11 @@ with warnings.catch_warnings():
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
 
-log = turk.init_logging('bridge')
-
 server =    ('skynet.local', 5222)
 jid =       JID("platform@skynet.local")
 password =  'password'
 
+log = turk.init_logging('bridge')
 
 class Bridge(dbus.service.Object):
     """
@@ -64,13 +63,26 @@ class Bridge(dbus.service.Object):
 
 
     @dbus.service.method(dbus_interface=turk.TURK_BRIDGE_INTERFACE,
+                         in_signature='t', out_signature='')
+    def RegisterDriver(self, driver_id):
+        """
+        Registers a driver ID with the bridge, so that it can receive updates.
+        """
+        if driver_id not in self.drivers:
+            log.debug('registering driver %d' % driver_id)
+            self.drivers[driver_id] = Driver(self.bus, driver_id)
+        else:
+            log.debug('driver %d already registered' % driver_id)
+
+
+    @dbus.service.method(dbus_interface=turk.TURK_BRIDGE_INTERFACE,
                          in_signature='sss', out_signature='')
     def PublishUpdate(self, type, update, driver):
         """
         Publishes a new update via HTTP to all apps that have registered to
         this data driver
         """
-        log.debug('Bridge: publishing update from %s - ' % (driver))
+        log.debug('publishing update from %s - ' % (driver))
 
         driver = int(driver)
 
@@ -87,7 +99,7 @@ class Bridge(dbus.service.Object):
                     response = urllib2.urlopen(request, timeout=1)
                     page = response.read(100)
 
-                    log.debug('Bridge: successfully updated app %d' % (app) )
+                    log.debug('successfully updated app %d' % (app) )
                     log.debug(page)
 
                 except urllib2.HTTPError, e:
@@ -134,7 +146,7 @@ class Bridge(dbus.service.Object):
             log.debug(e)
 
     def driverFail(self, exception):
-        log.debug('Bridge: failed to start require driver: %s' % exception)
+        log.debug('failed to start require driver: %s' % exception)
 
     @dbus.service.signal(dbus_interface=turk.TURK_BRIDGE_INTERFACE, signature='')
     def BridgeStarted(self):
@@ -279,7 +291,8 @@ class BridgeXMPPHandler(PresenceClientProtocol, RosterClientProtocol):
 class Driver(dbus.service.Object):
     def __init__(self, bus, id):
         self.path = '/Bridge/Drivers/%d' % (id)
-        dbus.service.Object.__init__(self, bus, self.path)
+        bus_name = dbus.service.BusName(turk.TURK_BRIDGE_SERVICE, bus)
+        dbus.service.Object.__init__(self, bus_name=bus_name, object_path=self.path)
         self.type = type
         self.id = id
         self.last_update = ''
@@ -297,13 +310,12 @@ class Driver(dbus.service.Object):
 def run(conf='/etc/turk/turk.yml', daemon=False):
     if isinstance(conf, basestring):
         try:
-            conf = yaml.load(open(conf, 'rU'))['bridge']
+            conf = yaml.load(open(conf, 'rU'))
         except Exception:
-            log.debug('Bridge: failed opening configuration file "%s"' % (conf))
+            print 'failed opening configuration file "%s"' % (conf)
             exit(1)
 
-    if not get_config('bridge.debug', conf):
-        log.setLevel(logging.WARNING)
+    log = turk.init_logging('bridge', conf, debug=get_config('bridge.debug'))
 
     jid = JID(get_config('bridge.username', conf))
 

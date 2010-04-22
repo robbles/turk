@@ -373,6 +373,8 @@ def run(conf='/etc/turk/turk.yml'):
             log.debug( 'failed opening configuration file "%s"' % (conf))
             exit(1)
 
+    log = turk.init_logging('xbeed', conf, debug=get_config('xbeed.debug'))
+
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
     bus = getattr(dbus, get_config('global.bus', conf))()

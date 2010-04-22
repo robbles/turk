@@ -178,10 +178,12 @@ def run(conf='/etc/turk/turk.yml'):
     # Load configuration if given as filename
     if isinstance(conf, basestring):
         try:
-            conf = yaml.load(open(conf, 'rU'))['spawner']
+            conf = yaml.load(open(conf, 'rU'))
         except Exception:
-            log.debug('Failed opening configuration file "%s"' % (conf))
+            print 'Failed opening configuration file "%s"' % (conf)
             exit(1)
+
+    log = turk.init_logging('spawner', conf, debug=get_config('spawner.debug'))
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
@@ -192,9 +194,6 @@ def run(conf='/etc/turk/turk.yml'):
         default_bus = get_config('global.bus')
         log.warning("Failed to access bus named %s, using default: %s" % (bus_label, default_bus))
         bus = getattr(dbus, default_bus)()
-
-    if not get_config('spawner.debug', conf):
-        log.setLevel(logging.WARNING)
 
     driver_dir = get_config('spawner.drivers', conf)
     autostart = get_config('spawner.autostart', conf)

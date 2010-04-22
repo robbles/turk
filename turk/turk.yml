@@ -9,10 +9,10 @@ turkctl:
 
 # bridge (drivers <-> XMPP <-> apps)
 bridge:
-    server: YOUR.XMPP.SERVER
+    server: macpro.local
     port: 5222
-    username: YOUR_XMPP_ID@YOUR.XMPP.SERVER
-    password: PASSWORD
+    username: platform@macpro.local
+    password: password
     debug: True
 
 # spawner (starts/stops and manages drivers)
@@ -31,7 +31,7 @@ spawner:
 # xbeed (handles XBee communication)
 xbeed:
     name: xbee0
-    port: '/dev/tty.usbserial-A9009hpT'
+    port: '/dev/ttys8'
     baudrate: 9600
     escaping: True
     debug: True

@@ -127,8 +127,8 @@ def main():
     conf = yaml.load(open(options.config, 'rU'))
     os.environ['TURK_CONF'] = options.config
 
-    if not get_config('turkctl.debug', conf):
-        log.setLevel(logging.WARNING)
+    global log
+    log = init_logging('turkctl', conf, debug=get_config('turkctl.debug'))
 
     {'start':start,
      'stop':stop,
