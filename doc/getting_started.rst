@@ -66,9 +66,10 @@ values as the default, and change them as necessary. That way, when the software
 is upgraded, only new values will be unspecified, and should be set to
 non-disruptive values (i.e. new features will be turned off by default). 
 
-.. highlight:: yaml
 
-The following is a basic template to start off with::
+The following is a basic template to start off with:
+
+.. code-block:: yaml
 
     # Global configuration
     global:
@@ -76,7 +77,7 @@ The following is a basic template to start off with::
 
     # control interface and launcher (corectl.py)
     turkctl:
-        pidfile: 'turk.pid'
+        pidfile: '/var/run/turk.pid'
         debug: True
 
     # bridge (drivers <-> XMPP <-> apps)
@@ -107,48 +108,144 @@ The following is a basic template to start off with::
         baudrate: 9600
         escaping: True
         debug: True
-
-    
     
 
-Writing your first driver
+Writing a simple driver
 -------------------------
 
-Proin neque elit, mollis vel, tristique nec, varius consectetuer, lorem. Nam
-malesuada ornare nunc. Duis turpis turpis, fermentum a, aliquet quis, sodales
-at, dolor. Duis eget velit eget risus fringilla hendrerit. Nulla facilisi.
-Mauris turpis pede, aliquet ac, mattis sed, consequat in, massa. Cum sociis
-natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-Etiam egestas posuere metus. Aliquam erat volutpat. Donec non tortor. Vivamus
-posuere nisi mollis dolor. Quisque porttitor nisi ac elit. Nullam tincidunt
-ligula vitae nulla::
-    
-    # This is a code sample
-    class Driver(dbus.service.Object):
-        """ This interfaces a device to the Turk Framework """
-        def __init__(self, address, bus):
+Although the framework comes with drivers for some simple tasks such as fetching
+the current date and time, and controlling simple wireless devices, most
+projects will need their own custom drivers. 
+
+Drivers are meant to be a way of translating the XML protocol used by Turk
+applications into another protocol, using a network or serial interface, or a
+web API. A web application can send XMPP messages to a predefined account, and
+the framework will forward those messages to the correct driver. The drivers can
+send out their own messages, and any number of applications can subscribe to
+these updates.
+
+Drivers are usually started by adding a listing to the configuration file that
+specifies the location of the file to run, any environment variables or
+command-line arguments it needs, and a unique identification number, or "device
+ID". This ID represents the abstracted "device" that the driver controls, which
+allows multiple drivers of the same type to be run at once. An example of such a
+listing can be seen in the sample configuration file above, in the autostart
+section.
+
+Once started, communication between the driver and the rest of the framework is
+done through the D-Bus protocol. This allows drivers to use other services in
+the framework through remote method calls, and to receive messages through
+signals. For more information on how D-Bus method calls and signals work, read
+`this introduction to D-Bus <http://www.freedesktop.org/wiki/IntroductionToDBus>`_.
+
+Example
+^^^^^^^
+
+The following is an example of a simple self-contained driver, written in
+Python. It uses both the Bridge API to receive updates from applications, and
+the XBee service to send binary packets to a wireless device.
+
+.. code-block:: python
+
+    #! /usr/bin/env python
+    import gobject
+    import dbus
+    import dbus.mainloop.glib
+    from turk.xbeed import xbeed
+    from xml.dom.minidom import parseString
+    import turk
+
+    DRIVER_ID = 6
+
+    """
+    ### Sample config ###
+
+    ## XMPP commands ##
+    <command type="color">#63A7E7</command>
+    <command type="on" />
+    <command type="off> />
+    <command type="shift" />
+    <command type="noshift" />
+
+    ### Sent to device ###
+    "[\x63\xA7\xE7#]" (for color command)
+
+    """
+
+    class RGBLamp(dbus.service.Object):
+        def __init__(self, device_id, device_addr, bus):
+            """ Initializes the driver and connects to any relevant signals """
+            dbus.service.Object.__init__(self, bus, '/Drivers/RGBLamp/%X' % device_addr)
+            self.device_id = device_id
+            self.device_addr = device_addr
             self.bus = bus
-            self.address = address
-            super(dbus.service.Object, self).__init__()
 
-        def recieve(message):
-            do_something(message)
+            # Get proxy for XBee interface
+            self.xbee = xbeed.get_daemon('xbee0', self.bus)
 
-This is some C++ code:
+            listen = '/Bridge/Drivers/%d' % (self.device_id)
+            self.bus.add_signal_receiver(self.update, path=listen)
+
             
-.. code-block:: c++
+        def update(self, driver, app, xml):
+            """ Called every time an update for this driver is received. """
+            try:
+                tree = parseString(xml)
 
-    void TurkDriver::ReceiveMessage(Message msg) {
-        this.doSomething(msg);
-        return;
-    }
+                command = tree.getElementsByTagName('command')[0]
+                ctype = command.getAttribute('type') 
 
-Vivamus sit amet risus et ipsum viverra malesuada. Duis luctus. Curabitur
-adipiscing metus et felis. Vestibulum tortor. Pellentesque purus. Donec
-pharetra, massa.
+                if ctype == 'color':
+                    # Parse hex color into RGB values
+                    color = command.childNodes[0].nodeValue.lstrip('# \n\r')
+                    red, green, blue = [int(color[i:i+2], 16) for i in range(0, 6, 2)]
 
-Writing and deploying a Tapp
-----------------------------
+                    # Build a message of the form "[RGB]"
+                    msg = ''.join(['[', chr(red), chr(green), chr(blue), '#]'])
+
+                    # Send it to the device
+                    self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 1)
+
+                elif ctype in ['on', 'off', 'shift', 'noshift']:
+                    command_byte = {
+                            'on' : '@',
+                            'off' : '*',
+                            'shift' : '$',
+                            'noshift' : '|' }[ctype]
+                    msg = ''.join(['[\x00\x00\x00', command_byte, ']'])
+                    self.xbee.SendData(dbus.ByteArray(msg), dbus.UInt64(self.device_addr), 2)
+
+            except Exception, e:
+                # emit an error signal for Bridge
+                self.Error(e.message)
+            
+        def run(self):
+            """ Loops forever and waits for signals from the framework """
+            loop = gobject.MainLoop()
+            loop.run()
+
+        @dbus.service.signal(dbus_interface=turk.TURK_DRIVER_ERROR, signature='s') 
+        def Error(self, message):
+            """ Called when an error/exception occurs. Emits a signal for any relevant
+                system management daemons and loggers """
+            pass
+
+    # Run as a standalone driver
+    if __name__ == '__main__':
+        import os
+        device_id = int(os.getenv('DEVICE_ID'))
+        device_addr = int(os.getenv('DEVICE_ADDRESS'), 16)
+        bus = os.getenv('BUS', turk.get_config('global.bus'))
+        print "RGB Lamp driver started... driver id: %u, target xbee: 0x%X" % (device_id, device_addr)
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        driver = RGBLamp(device_id, device_addr, getattr(dbus, bus)())
+        driver.run()
+
+    
+
+
+Writing and deploying a web application
+---------------------------------------
 
 Malesuada elementum, nisi. Integer vitae enim quis risus aliquet gravida.
 Curabitur vel lorem vel erat dapibus lobortis. Donec dignissim tellus at arcu.
@@ -188,4 +285,6 @@ Nulla magna neque, ullamcorper tempus, luctus eget.
 .. rubric:: Footnotes
 
 .. [#yaml] YAML: YAML Ain't Markup Language (see `yaml.org <http://yaml.org>`_)
+
+
 

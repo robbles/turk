@@ -20,39 +20,6 @@ Welcome to Turk's documentation!
     roadmap.rst
 
 
-..
-    :class:`spawner.DriverSpawner` -- Spawner Daemon
-    ==============================================================
-    .. autoclass:: turk.runtime.spawner.DriverSpawner
-        :members:
-
-
-    :mod:`parrot` -- Dead parrot access
-    ===================================
-
-    .. module:: parrot
-       :platform: Unix, Windows
-       :synopsis: Analyze and reanimate dead parrots.
-    .. moduleauthor:: Eric Cleese <eric@python.invalid>
-    .. moduleauthor:: John Idle <john@python.invalid>
-
-    .. function:: Message.send(client, xmpp[, frame_id])
-
-    Mauris at justo adipiscing facilisis. Nunc et velit. Donec auctor, nulla
-    id laoreet volutpat, pede erat feugiat ante, auctor facilisis dui.
-
-
-    .. function:: Timer.repeat([repeat=3[, number=1000000]])
-
-    Orci risus a nulla. Pellentesque sit amet arcu. In mattis laoreet enim.
-    Pellentesque id augue et arcu blandit tincidunt. Pellentesque elit ante,
-    rhoncus quis, dapibus sit amet, tincidunt eu, nibh. In.
-
-    .. function:: Timer.repeat([repeat=3[, number=1000000]])
-
-    Sed mauris. Nam varius odio a sapien. Aenean rutrum dictum sapien. 
-
-
 Indices and tables
 ==================
 

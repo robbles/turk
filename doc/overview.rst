@@ -45,11 +45,11 @@ The main goals for for Turk and its future development and features are:
 * Encouraging and simplifying collaboration between developers using different
   programming languages, frameworks and technologies
 
-Since Turk exists to simplify the task of reliably connecting a device or
+Since the Turk framework exists to simplify the task of reliably connecting a device or
 application to web interfaces, most of these goals can be summarized as follows:
 Turk should be simple to learn, use, and extend. Making the framework
 over-complicated or difficult to use would mostly defeat the purpose of using
-it, after all.
+it.
 
 
 Who Uses It?
