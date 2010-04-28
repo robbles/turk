@@ -15,6 +15,12 @@ many web applications at once. Turk also includes a growing library of optional
 services that allow drivers to interface with hardware, web APIs, desktop
 applications, and home media.
 
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TODO: Include overview diagram of Turk system here.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
 What Can I Use It For?
 ----------------------
 

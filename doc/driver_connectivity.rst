@@ -1,6 +1,8 @@
 Driver Connectivity
 =======================================
 
+.. _driver-design:
+
 Advanced Driver Design
 ----------------------
 Nullam elementum erat. Quisque dapibus, augue nec dapibus bibendum, velit enim
