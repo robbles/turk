@@ -16,13 +16,5 @@ Welcome to Turk's documentation!
     web_interfaces.rst
     xmpp_protocol.rst
     system_services.rst
-    roadmap.rst
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

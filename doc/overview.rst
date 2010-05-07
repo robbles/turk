@@ -16,11 +16,6 @@ services that allow drivers to interface with hardware, web APIs, desktop
 applications, and home media.
 
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TODO: Include overview diagram of Turk system here.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
 What Can I Use It For?
 ----------------------
 
@@ -61,5 +56,10 @@ it.
 Who Should Use It?
 ------------------
 
-TODO
+Turk was developed with hobbiests, researchers, and students in mind. It is
+designed primarily with ease of use, extendability and user collaboration in
+mind.However, it can be integrated into other larger projects, either by
+leveraging the open Python and D-Bus APIs it exposes, or simply by controlling
+it using the included console utility.
+
 

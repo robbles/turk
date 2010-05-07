@@ -6,7 +6,7 @@ Driver Connectivity
 Advanced Driver Design
 ----------------------
 
-The examples of simple drivers given in the :ref:`getting_started` section are
+The examples of simple drivers given in the :ref:`getting-started` section are
 effective for establishing simple communication between a device or service and
 a web application, but have some major limitations. Due to the latency of the
 Internet and various other factors, there is an upper limit on the speed at
