@@ -49,59 +49,117 @@
   <div class="section" id="driver-connectivity">
 <h1>Driver Connectivity<a class="headerlink" href="#driver-connectivity" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="advanced-driver-design">
-<h2>Advanced Driver Design<a class="headerlink" href="#advanced-driver-design" title="Permalink to this headline">¶</a></h2>
-<p>Nullam elementum erat. Quisque dapibus, augue nec dapibus bibendum, velit enim
-scelerisque sem, accumsan suscipit lectus odio ac justo. Fusce in felis a enim
-rhoncus placerat. Cras nec eros et mi egestas facilisis. In hendrerit tincidunt
-neque. Maecenas tellus. Fusce sollicitudin molestie dui. Sed magna orci,
-accumsan nec, viverra non, pharetra id, dui.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nullam placerat mi
-vitae felis. In porta, quam sit amet sodales elementum, elit dolor aliquam
-elit, a commodo nisi felis nec nibh. Nulla facilisi. Etiam at tortor. Vivamus
-quis sapien nec magna scelerisque lobortis.</p>
-<p>Curabitur tincidunt viverra justo. Cum sociis natoque penatibus.</p>
+<span id="driver-design"></span><h2>Advanced Driver Design<a class="headerlink" href="#advanced-driver-design" title="Permalink to this headline">¶</a></h2>
+<p>The examples of simple drivers given in the <em class="xref">getting_started</em> section are
+effective for establishing simple communication between a device or service and
+a web application, but have some major limitations. Due to the latency of the
+Internet and various other factors, there is an upper limit on the speed at
+which messages between drivers and applications can be sent. However, there are
+many workarounds for this limitation. Messages from applications are primarily
+meant to be used to update the current state of a driver, not to stream large
+amounts of real-time data. With this in mind, the ideal way is to instruct the
+driver to connect independently to a server, by giving it the
+necessary details in a message.</p>
+<p>Sending data between two drivers with the application as the intermediary is
+another problem. Although the simplest way to do this is to relay the data
+through the application and back down to the driver, this is far from ideal. If
+there is minimal translation of the data involved, the drivers should be able to
+communicate directly with each other.</p>
 </div>
 <div class="section" id="interconnecting-drivers-and-apps">
 <h2>Interconnecting Drivers and Apps<a class="headerlink" href="#interconnecting-drivers-and-apps" title="Permalink to this headline">¶</a></h2>
-<p>Proin neque elit, mollis vel, tristique nec, varius consectetuer, lorem. Nam
-malesuada ornare nunc. Duis turpis turpis, fermentum a, aliquet quis, sodales
-at, dolor. Duis eget velit eget risus fringilla hendrerit. Nulla facilisi.
-Mauris turpis pede, aliquet ac, mattis sed, consequat in, massa. Cum sociis
-natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-Etiam egestas posuere metus. Aliquam erat volutpat. Donec non tortor. Vivamus
-posuere nisi mollis dolor. Quisque porttitor nisi ac elit. Nullam tincidunt
-ligula vitae nulla.</p>
-<p>Vivamus sit amet risus et ipsum viverra malesuada. Duis luctus. Curabitur
-adipiscing metus et felis. Vestibulum tortor. Pellentesque purus. Donec
-pharetra, massa.</p>
+<p>A basic outline of the process of connecting a driver to an external service is
+as follows, using RSS feeds as a simple example of an web service.</p>
+<ul class="simple">
+<li>Application registers to updates from driver:</li>
+</ul>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;register</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">app=</span><span class="s">&quot;2&quot;</span> <span class="na">url=</span><span class="s">&quot;http://example.com/updates/&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;driver</span> <span class="na">id=</span><span class="s">&quot;8&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/register&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>User adds a new feed to be monitored to application</li>
+<li>Application notifies driver that it should start checking a new feed:</li>
+</ul>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;update</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">to=</span><span class="s">&quot;100&quot;</span> <span class="na">from=</span><span class="s">&quot;101&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;feed</span> <span class="na">type=</span><span class="s">&quot;atom&quot;</span> <span class="na">update=</span><span class="s">&quot;1min&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;title&gt;</span>Digg News<span class="nt">&lt;/title&gt;</span>
+            <span class="nt">&lt;url&gt;</span>http://feeds.digg.com/digg/news/popular.rss<span class="nt">&lt;/url&gt;</span>
+        <span class="nt">&lt;/feed&gt;</span>
+    <span class="nt">&lt;/update&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>Driver starts fetching the RSS content from the URL every 1 minute</li>
+<li>When a new story is found, the driver sends out an update addressed to the
+app:</li>
+</ul>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;update</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">to=</span><span class="s">&quot;101&quot;</span> <span class="na">from=</span><span class="s">&quot;100&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;story</span> <span class="na">type=</span><span class="s">&quot;atom&quot;</span> <span class="na">date=</span><span class="s">&quot;1273212547&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;title&gt;</span>Baboon attacks Prime Minister! Nation in panic.<span class="nt">&lt;title&gt;</span>
+        <span class="nt">&lt;author&gt;</span>Lois Lane<span class="nt">&lt;/author&gt;</span>
+        <span class="nt">&lt;/story&gt;</span>
+    <span class="nt">&lt;/update&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+<p>Connecting two drivers together is even simpler, as all that is needed is a
+D-Bus address and path. This allows one driver to make RPC calls to the other,
+without going through the overhead of the XMPP handlers and the internet
+communication.</p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;update</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">to=</span><span class="s">&quot;101&quot;</span> <span class="na">from=</span><span class="s">&quot;100&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;driver</span> <span class="na">type=</span><span class="s">&quot;dbus&quot;</span> <span class="na">method=</span><span class="s">&quot;Update&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;address&gt;</span>org.turkinnovations.exampledriver<span class="nt">&lt;/address&gt;</span>
+            <span class="nt">&lt;path&gt;</span>/Drivers/ExampleDriver/42<span class="nt">&lt;/path&gt;</span>
+        <span class="nt">&lt;/driver&gt;</span>
+    <span class="nt">&lt;/update&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="driver-dependencies">
 <h2>Driver Dependencies<a class="headerlink" href="#driver-dependencies" title="Permalink to this headline">¶</a></h2>
-<p>Malesuada elementum, nisi. Integer vitae enim quis risus aliquet gravida.
-Curabitur vel lorem vel erat dapibus lobortis. Donec dignissim tellus at arcu.
-Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget, malesuada ut, velit. Morbi
-felis. Praesent in purus at ipsum cursus posuere. Morbi bibendum facilisis
-eros. Phasellus aliquam sapien in erat. Praesent venenatis diam dignissim dui.
-Praesent risus erat, iaculis ac, dapibus sed, imperdiet ac, erat. Nullam sed
-ipsum. Phasellus non dolor. Donec ut elit.</p>
-<p>Sed risus.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum sem lacus,
-commodo vitae, aliquam ut, posuere eget, dui. Praesent massa dui, mattis et,
-vehicula.</p>
+<p>A common issue with setting up a Turk system arises when drivers are dependent
+on each other to run properly. Drivers can be reused as services to maximize
+their capabilities, and can also be connected directly to each other for more
+efficient communication. However, there are several important things to keep in
+mind when implementing a system like this.</p>
+<p>Another issue that can arise with dependencies is fault tolerance.
+Unfortunately, even the best drivers can have software bugs, and occasionally,
+they crash. The framework is designed to deal with this, however, and will
+automatically restart a driver when it detects a problem like this, unless
+configured otherwise. However, other drivers must be able to handle any
+connections being dropped or data lost in the process. Depending on the method
+of communication used, other drivers may need to re-open the connection when the
+program at the other end is restarted. DBus proxy connections, for example, are
+based on the unique name of the connection. This means that if a driver was
+using a reference to another driver, received from a controlling application, that
+reference would be useless once the other driver was restarted. The same principle
+as before applies to this situation - the driver has to monitor the connection,
+and take steps to fix any communication problems when they occur.</p>
 </div>
 <div class="section" id="running-drivers-on-demand">
 <h2>Running Drivers on Demand<a class="headerlink" href="#running-drivers-on-demand" title="Permalink to this headline">¶</a></h2>
-<p>Justo ac sem.</p>
-<p>Pellentesque at dolor non lectus sagittis semper. Donec quis mi. Duis eget
-pede. Phasellus arcu tellus, ultricies id, consequat id, lobortis nec, diam.
-Suspendisse sed nunc. Pellentesque id magna. Morbi interdum quam at est.
-Maecenas eleifend mi in urna. Praesent et lectus ac nibh luctus viverra. In vel
-dolor sed nibh sollicitudin tincidunt. Ut consequat nisi sit amet nibh. Nunc mi
-tortor, tristique sit amet, rhoncus porta, malesuada elementum, nisi. Integer
-vitae enim quis risus aliquet gravida. Curabitur vel lorem vel erat dapibus
-lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget.</p>
+<p>The simplest way to make sure a required driver is running is to include in the
+configuration file and restart the framework. However, there are some use cases
+for starting and stopping drivers on the fly. Examples of these are:</p>
+<ul class="simple">
+<li>Multi-driver systems that can turn off certain features when not in use</li>
+<li>Utility drivers that other drivers can start up when needed</li>
+<li>Controlling the Turk Framework from a graphical user interface</li>
+</ul>
+<p>As a result, there is a way to do this through the Turk API. The API calls
+StartDriverByName, RestartDriverByID, StopDriverByID and GetDriverList can be
+used to control the Spawner component. This allows drivers and plugins to be
+written that can dynamically control the list of drivers currently being managed
+by the framework.</p>
 </div>
 </div>
 

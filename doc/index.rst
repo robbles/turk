@@ -16,7 +16,6 @@ Welcome to Turk's documentation!
     web_interfaces.rst
     xmpp_protocol.rst
     system_services.rst
-    extension_api.rst
     roadmap.rst
 
 

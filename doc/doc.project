@@ -1,14 +1,13 @@
-doc=/Users/rob/turk/doc CD=. filter="*.rst" {
- configuration.rst
- driver_connectivity.rst
- extension_api.rst
- getting_started.rst
+doc=/Users/rob/turk/doc CD=. filter="*.rst" flags=sr {
  index.rst
  overview.rst
- roadmap.rst
- system_services.rst
+ getting_started.rst
+ configuration.rst
+ driver_connectivity.rst
  web_interfaces.rst
  xmpp_protocol.rst
+ system_services.rst
+ roadmap.rst
 
  conf=. filter="*.py" {
   conf.py

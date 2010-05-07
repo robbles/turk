@@ -48,60 +48,49 @@
             
   <div class="section" id="designing-web-interfaces">
 <h1>Designing Web Interfaces<a class="headerlink" href="#designing-web-interfaces" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="complex-web-interfaces">
-<h2>Complex Web Interfaces<a class="headerlink" href="#complex-web-interfaces" title="Permalink to this headline">¶</a></h2>
-<p>Nullam elementum erat. Quisque dapibus, augue nec dapibus bibendum, velit enim
-scelerisque sem, accumsan suscipit lectus odio ac justo. Fusce in felis a enim
-rhoncus placerat. Cras nec eros et mi egestas facilisis. In hendrerit tincidunt
-neque. Maecenas tellus. Fusce sollicitudin molestie dui. Sed magna orci,
-accumsan nec, viverra non, pharetra id, dui.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nullam placerat mi
-vitae felis. In porta, quam sit amet sodales elementum, elit dolor aliquam
-elit, a commodo nisi felis nec nibh. Nulla facilisi. Etiam at tortor. Vivamus
-quis sapien nec magna scelerisque lobortis.</p>
-<p>Curabitur tincidunt viverra justo. Cum sociis natoque penatibus.</p>
-</div>
 <div class="section" id="speed-and-latency-issues">
 <h2>Speed and Latency Issues<a class="headerlink" href="#speed-and-latency-issues" title="Permalink to this headline">¶</a></h2>
-<p>Proin neque elit, mollis vel, tristique nec, varius consectetuer, lorem. Nam
-malesuada ornare nunc. Duis turpis turpis, fermentum a, aliquet quis, sodales
-at, dolor. Duis eget velit eget risus fringilla hendrerit. Nulla facilisi.
-Mauris turpis pede, aliquet ac, mattis sed, consequat in, massa. Cum sociis
-natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-Etiam egestas posuere metus. Aliquam erat volutpat. Donec non tortor. Vivamus
-posuere nisi mollis dolor. Quisque porttitor nisi ac elit. Nullam tincidunt
-ligula vitae nulla.</p>
-<p>Vivamus sit amet risus et ipsum viverra malesuada. Duis luctus. Curabitur
-adipiscing metus et felis. Vestibulum tortor. Pellentesque purus. Donec
-pharetra, massa.</p>
+<p>The simplest way to send and receive messages through a web application (using a
+server-side script) has some limitations that become obvious fairly quickly.
+Even with a fast computer and internet connection, the time it takes to make a
+new connection to an XMPP server is usually several seconds. Once the
+connection is ready, however, messages can be sent very quickly. This means that
+there is a huge performance advantage for an application to stay connected to
+the server. There are two ways to achieve this:</p>
+<ul class="simple">
+<li>Start a daemon process on the server that holds a connection, and send
+messages through it using some kind of RPC call.</li>
+<li>Make a client-side connection with Javascript, and occasionally synchronize
+with the server-side code if necessary.</li>
+</ul>
+<p>Each have their own pros and cons. The daemon process method is more complicated,
+and adds another layer of complexity to the application, but can be re-used for
+other applications, and has a much wider range of uses. The Javascript solution,
+on the other hand, is trivial to set up, but requires a web browser to operate.
+In other words, it can&#8217;t do anything in the background, because it requires the
+user interface to be &#8220;running&#8221;.</p>
+<p>Another downside to the Javascript solution is the problem of cross-site
+scripting. Most modern web browsers prevent client-side scripts from connecting
+to other domains or web services. This causes a problem for XMPP client scripts,
+since the server they connect to is frequently located on a different domain or
+port. Common workarounds for this include running a web proxy that forwards any
+requests to the XMPP server, and using Flash to provide an alternate means of
+communication.</p>
 </div>
 <div class="section" id="connecting-web-apps-to-platforms">
 <h2>Connecting Web Apps to Platforms<a class="headerlink" href="#connecting-web-apps-to-platforms" title="Permalink to this headline">¶</a></h2>
-<p>Malesuada elementum, nisi. Integer vitae enim quis risus aliquet gravida.
-Curabitur vel lorem vel erat dapibus lobortis. Donec dignissim tellus at arcu.
-Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget, malesuada ut, velit. Morbi
-felis. Praesent in purus at ipsum cursus posuere. Morbi bibendum facilisis
-eros. Phasellus aliquam sapien in erat. Praesent venenatis diam dignissim dui.
-Praesent risus erat, iaculis ac, dapibus sed, imperdiet ac, erat. Nullam sed
-ipsum. Phasellus non dolor. Donec ut elit.</p>
-<p>Sed risus.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum sem lacus,
-commodo vitae, aliquam ut, posuere eget, dui. Praesent massa dui, mattis et,
-vehicula.</p>
-</div>
-<div class="section" id="hosting-apps">
-<h2>Hosting Apps<a class="headerlink" href="#hosting-apps" title="Permalink to this headline">¶</a></h2>
-<p>Justo ac sem.</p>
-<p>Pellentesque at dolor non lectus sagittis semper. Donec quis mi. Duis eget
-pede. Phasellus arcu tellus, ultricies id, consequat id, lobortis nec, diam.
-Suspendisse sed nunc. Pellentesque id magna. Morbi interdum quam at est.
-Maecenas eleifend mi in urna. Praesent et lectus ac nibh luctus viverra. In vel
-dolor sed nibh sollicitudin tincidunt. Ut consequat nisi sit amet nibh. Nunc mi
-tortor, tristique sit amet, rhoncus porta, malesuada elementum, nisi. Integer
-vitae enim quis risus aliquet gravida. Curabitur vel lorem vel erat dapibus
-lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget.</p>
+<p>Once you have a Turk platform running, and a couple of applications to use with
+it, the next step is to reliably connect them together. Depending on the usage,
+it may be a good idea to use a separate XMPP account (JID) for each application.
+XMPP servers have different policies regarding multiple clients using the same
+account, and some may refuse access in such a situation. It is also possible to
+connect as a specific <em>resource</em>, which allows for multiple connections to the
+same JID, as long as the resource names are different.</p>
+<p>The next step is to work out the mechanics of receiving updates from drivers.
+Applications need to have a URL for the platform to send updates to, and have to
+register to receive updates with the drivers they use. This can be done whenever
+the UI is opened, or just on a regular interval. The framework will ignore any
+identical register requests, so it is better to err on the side of caution.</p>
 </div>
 </div>
 
@@ -114,10 +103,8 @@ lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.</p>
             <h3><a href="index.html">Table Of Contents</a></h3>
             <ul>
 <li><a class="reference external" href="#">Designing Web Interfaces</a><ul>
-<li><a class="reference external" href="#complex-web-interfaces">Complex Web Interfaces</a></li>
 <li><a class="reference external" href="#speed-and-latency-issues">Speed and Latency Issues</a></li>
 <li><a class="reference external" href="#connecting-web-apps-to-platforms">Connecting Web Apps to Platforms</a></li>
-<li><a class="reference external" href="#hosting-apps">Hosting Apps</a></li>
 </ul>
 </li>
 </ul>

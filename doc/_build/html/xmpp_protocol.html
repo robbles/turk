@@ -50,67 +50,109 @@
 <h1>The Turk XMPP Protocol<a class="headerlink" href="#the-turk-xmpp-protocol" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="current-protocol-specification">
 <h2>Current Protocol Specification<a class="headerlink" href="#current-protocol-specification" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>&lt;message /&gt;</li>
-<li>&lt;update /&gt;</li>
-<li>&lt;require /&gt;</li>
-<li>&lt;register /&gt;</li>
+<p>The Turk XMPP protocol currently consists of three tags that can be sent to and
+from a platform:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>&lt;update /&gt;</dt>
+<dd><p class="first last">The update tag is used to carry messages from applications to drivers. It
+must specify the driver ID to deliver the message to.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>&lt;register /&gt;</dt>
+<dd><p class="first last">The register tag is sent by an application to subscribe to updates from a
+particular driver.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>&lt;require /&gt;</dt>
+<dd><p class="first last">The require tag asks the framework to ensure that a required driver is
+running. This currently does nothing, but will eventually be used in the
+driver launching part of the framework.</p>
+</dd>
+</dl>
+</li>
 </ul>
+<p>These tags are all under the XML namespace
+&#8220;<a class="reference external" href="http://turkinnovations.com/protocol">http://turkinnovations.com/protocol</a>&#8220;, and are sent inside jabber:client message
+tags like most XMPP chat messages.</p>
 </div>
 <div class="section" id="protocol-examples">
 <h2>Protocol Examples<a class="headerlink" href="#protocol-examples" title="Permalink to this headline">¶</a></h2>
-<p>Nullam elementum erat. Quisque dapibus, augue nec dapibus bibendum, velit enim
-scelerisque sem, accumsan suscipit lectus odio ac justo. Fusce in felis a enim
-rhoncus placerat. Cras nec eros et mi egestas facilisis. In hendrerit tincidunt
-neque. Maecenas tellus. Fusce sollicitudin molestie dui. Sed magna orci,
-accumsan nec, viverra non, pharetra id, dui.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nullam placerat mi
-vitae felis. In porta, quam sit amet sodales elementum, elit dolor aliquam
-elit, a commodo nisi felis nec nibh. Nulla facilisi. Etiam at tortor. Vivamus
-quis sapien nec magna scelerisque lobortis.</p>
-<p>Curabitur tincidunt viverra justo. Cum sociis natoque penatibus.</p>
+<div class="section" id="registering-to-a-driver">
+<h3>Registering to a driver<a class="headerlink" href="#registering-to-a-driver" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;register</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">app=</span><span class="s">&quot;2&quot;</span> <span class="na">url=</span><span class="s">&quot;http://example.com/updates/&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;driver</span> <span class="na">id=</span><span class="s">&quot;8&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/register&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sending-an-update">
+<h3>Sending an update<a class="headerlink" href="#sending-an-update" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;update</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">to=</span><span class="s">&quot;8&quot;</span> <span class="na">from=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;command</span> <span class="na">type=</span><span class="s">&quot;on&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/update&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="requiring-a-driver">
+<h3>Requiring a driver<a class="headerlink" href="#requiring-a-driver" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-xml"><div class="highlight"><pre><span class="nt">&lt;message</span> <span class="na">xmlns=</span><span class="s">&quot;jabber:client&quot;</span> <span class="na">to=</span><span class="s">&quot;turk-platform-account@xmpp-server.tld&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;require</span> <span class="na">xmlns=</span><span class="s">&quot;http://turkinnovations.com/protocol&quot;</span> <span class="na">app=</span><span class="s">&quot;2&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;driver</span> <span class="na">id=</span><span class="s">&quot;8&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/require&gt;</span>
+<span class="nt">&lt;/message&gt;</span>
+</pre></div>
+</div>
+</div>
 </div>
 <div class="section" id="message-structure">
 <h2>Message Structure<a class="headerlink" href="#message-structure" title="Permalink to this headline">¶</a></h2>
-<p>Proin neque elit, mollis vel, tristique nec, varius consectetuer, lorem. Nam
-malesuada ornare nunc. Duis turpis turpis, fermentum a, aliquet quis, sodales
-at, dolor. Duis eget velit eget risus fringilla hendrerit. Nulla facilisi.
-Mauris turpis pede, aliquet ac, mattis sed, consequat in, massa. Cum sociis
-natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-Etiam egestas posuere metus. Aliquam erat volutpat. Donec non tortor. Vivamus
-posuere nisi mollis dolor. Quisque porttitor nisi ac elit. Nullam tincidunt
-ligula vitae nulla.</p>
-<p>Vivamus sit amet risus et ipsum viverra malesuada. Duis luctus. Curabitur
-adipiscing metus et felis. Vestibulum tortor. Pellentesque purus. Donec
-pharetra, massa.</p>
+<div class="section" id="update">
+<h3>UPDATE<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<p>The update tag must include the &#8220;to&#8221; and &#8220;from&#8221; attributes, indicating the
+destination driver and source application IDs, respectively. It may also include
+an optional &#8220;type&#8221; attribute, which can be used to indicate the context of the
+update. This may be used in a future version of the framework.</p>
 </div>
-<div class="section" id="command-usage-patterns-and-standards">
-<h2>Command Usage Patterns and Standards<a class="headerlink" href="#command-usage-patterns-and-standards" title="Permalink to this headline">¶</a></h2>
-<p>Malesuada elementum, nisi. Integer vitae enim quis risus aliquet gravida.
-Curabitur vel lorem vel erat dapibus lobortis. Donec dignissim tellus at arcu.
-Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget, malesuada ut, velit. Morbi
-felis. Praesent in purus at ipsum cursus posuere. Morbi bibendum facilisis
-eros. Phasellus aliquam sapien in erat. Praesent venenatis diam dignissim dui.
-Praesent risus erat, iaculis ac, dapibus sed, imperdiet ac, erat. Nullam sed
-ipsum. Phasellus non dolor. Donec ut elit.</p>
-<p>Sed risus.</p>
-<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum sem lacus,
-commodo vitae, aliquam ut, posuere eget, dui. Praesent massa dui, mattis et,
-vehicula.</p>
+<div class="section" id="register">
+<h3>REGISTER<a class="headerlink" href="#register" title="Permalink to this headline">¶</a></h3>
+<p>The register tag must include the &#8220;app&#8221; and &#8220;url&#8221; attributes. The first is used
+by the framework to identify the app, and the second to forward messages using
+HTTP. Drivers are specified with a list of &#8220;driver&#8221; tags, each of which must
+include an &#8220;id&#8221; attribute representing the driver ID.</p>
+</div>
+<div class="section" id="require">
+<h3>REQUIRE<a class="headerlink" href="#require" title="Permalink to this headline">¶</a></h3>
+<p>The require tag must include the &#8220;app&#8221; attribute, which has the same meaning as
+it does for the register tag. Drivers are specified with a list of &#8220;driver&#8221;
+tags, each of which must include an &#8220;id&#8221; attribute representing the driver ID.</p>
+</div>
 </div>
 <div class="section" id="future-developments">
 <h2>Future Developments<a class="headerlink" href="#future-developments" title="Permalink to this headline">¶</a></h2>
-<p>Justo ac sem.</p>
-<p>Pellentesque at dolor non lectus sagittis semper. Donec quis mi. Duis eget
-pede. Phasellus arcu tellus, ultricies id, consequat id, lobortis nec, diam.
-Suspendisse sed nunc. Pellentesque id magna. Morbi interdum quam at est.
-Maecenas eleifend mi in urna. Praesent et lectus ac nibh luctus viverra. In vel
-dolor sed nibh sollicitudin tincidunt. Ut consequat nisi sit amet nibh. Nunc mi
-tortor, tristique sit amet, rhoncus porta, malesuada elementum, nisi. Integer
-vitae enim quis risus aliquet gravida. Curabitur vel lorem vel erat dapibus
-lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.</p>
-<p>Nulla magna neque, ullamcorper tempus, luctus eget.</p>
+<p>There are several planned updates to the protocol, which will probably be
+indicated by version numbers in the XML namespace. This will ensure
+compatibility by allowing newer applications to bundle newer protocol features
+into their messages that will be ignored by older versions of the framework.
+Some of these features include:</p>
+<ul class="simple">
+<li>Allowing other services besides drivers to be specified in register/require
+tags</li>
+<li>Adding a &#8220;protocol&#8221; attribute to register, which determines the method of
+notifying the application (e.g. HTTP, HTTPS, XMPP)</li>
+<li>Allowing register/require tags to specify drivers by name instead of ID</li>
+<li>Commands to control drivers (restart, stop)</li>
+<li>A &#8220;status&#8221; tag that will request an update containing a bundle of information
+about the framework</li>
+</ul>
 </div>
 </div>
 
@@ -124,9 +166,18 @@ lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.</p>
             <ul>
 <li><a class="reference external" href="#">The Turk XMPP Protocol</a><ul>
 <li><a class="reference external" href="#current-protocol-specification">Current Protocol Specification</a></li>
-<li><a class="reference external" href="#protocol-examples">Protocol Examples</a></li>
-<li><a class="reference external" href="#message-structure">Message Structure</a></li>
-<li><a class="reference external" href="#command-usage-patterns-and-standards">Command Usage Patterns and Standards</a></li>
+<li><a class="reference external" href="#protocol-examples">Protocol Examples</a><ul>
+<li><a class="reference external" href="#registering-to-a-driver">Registering to a driver</a></li>
+<li><a class="reference external" href="#sending-an-update">Sending an update</a></li>
+<li><a class="reference external" href="#requiring-a-driver">Requiring a driver</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#message-structure">Message Structure</a><ul>
+<li><a class="reference external" href="#update">UPDATE</a></li>
+<li><a class="reference external" href="#register">REGISTER</a></li>
+<li><a class="reference external" href="#require">REQUIRE</a></li>
+</ul>
+</li>
 <li><a class="reference external" href="#future-developments">Future Developments</a></li>
 </ul>
 </li>

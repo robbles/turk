@@ -2,6 +2,8 @@
 Getting started with the Turk Framework
 ***************************************
 
+.. _getting-started:
+
 Installing
 ----------
 
@@ -246,7 +248,7 @@ Writing and deploying a web application
 
 Creating a web application that uses Turk is even simpler, as they just send
 simple XMPP messages to the framework, and only need to be able to process HTTP
-POST requests. An application's workflow looks something like this:
+POST requests. An application's work-flow looks something like this:
 
 * Application sends a "register" XMPP message to the Turk platform when activated, to
   subscribe to any updates from a specified set of drivers.

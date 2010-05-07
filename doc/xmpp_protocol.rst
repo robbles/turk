@@ -2,77 +2,105 @@ The Turk XMPP Protocol
 =======================================
 
 Current Protocol Specification
-----------
-* <message />
-* <update />
-* <require />
+------------------------------
+
+The Turk XMPP protocol currently consists of three tags that can be sent to and
+from a platform:
+
+* <update /> 
+    The update tag is used to carry messages from applications to drivers. It
+    must specify the driver ID to deliver the message to.
 * <register />
+    The register tag is sent by an application to subscribe to updates from a
+    particular driver.
+* <require />
+    The require tag asks the framework to ensure that a required driver is
+    running. This currently does nothing, but will eventually be used in the
+    driver launching part of the framework.
+
+These tags are all under the XML namespace
+"http://turkinnovations.com/protocol", and are sent inside jabber:client message
+tags like most XMPP chat messages.
 
 Protocol Examples
 -----------------
-Nullam elementum erat. Quisque dapibus, augue nec dapibus bibendum, velit enim
-scelerisque sem, accumsan suscipit lectus odio ac justo. Fusce in felis a enim
-rhoncus placerat. Cras nec eros et mi egestas facilisis. In hendrerit tincidunt
-neque. Maecenas tellus. Fusce sollicitudin molestie dui. Sed magna orci,
-accumsan nec, viverra non, pharetra id, dui.
 
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nullam placerat mi
-vitae felis. In porta, quam sit amet sodales elementum, elit dolor aliquam
-elit, a commodo nisi felis nec nibh. Nulla facilisi. Etiam at tortor. Vivamus
-quis sapien nec magna scelerisque lobortis.
+Registering to a driver
+^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: xml
 
-Curabitur tincidunt viverra justo. Cum sociis natoque penatibus.
+    <message xmlns="jabber:client" to="turk-platform-account@xmpp-server.tld">
+        <register xmlns="http://turkinnovations.com/protocol" app="2" url="http://example.com/updates/">
+            <driver id="8" />
+        </register>
+    </message>
 
+Sending an update
+^^^^^^^^^^^^^^^^^
+.. code-block:: xml
+
+    <message xmlns="jabber:client" to="turk-platform-account@xmpp-server.tld">
+        <update xmlns="http://turkinnovations.com/protocol" to="8" from="0">
+            <command type="on" />
+        </update>
+    </message>
+
+Requiring a driver
+^^^^^^^^^^^^^^^^^^
+.. code-block:: xml
+
+    <message xmlns="jabber:client" to="turk-platform-account@xmpp-server.tld">
+        <require xmlns="http://turkinnovations.com/protocol" app="2">
+            <driver id="8" />
+        </require>
+    </message>
 
 Message Structure
 -----------------
 
-Proin neque elit, mollis vel, tristique nec, varius consectetuer, lorem. Nam
-malesuada ornare nunc. Duis turpis turpis, fermentum a, aliquet quis, sodales
-at, dolor. Duis eget velit eget risus fringilla hendrerit. Nulla facilisi.
-Mauris turpis pede, aliquet ac, mattis sed, consequat in, massa. Cum sociis
-natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-Etiam egestas posuere metus. Aliquam erat volutpat. Donec non tortor. Vivamus
-posuere nisi mollis dolor. Quisque porttitor nisi ac elit. Nullam tincidunt
-ligula vitae nulla.
+UPDATE
+^^^^^^
 
-Vivamus sit amet risus et ipsum viverra malesuada. Duis luctus. Curabitur
-adipiscing metus et felis. Vestibulum tortor. Pellentesque purus. Donec
-pharetra, massa.
+The update tag must include the "to" and "from" attributes, indicating the
+destination driver and source application IDs, respectively. It may also include
+an optional "type" attribute, which can be used to indicate the context of the
+update. This may be used in a future version of the framework.
 
-Command Usage Patterns and Standards
-------------------------------------
+REGISTER
+^^^^^^^^
 
-Malesuada elementum, nisi. Integer vitae enim quis risus aliquet gravida.
-Curabitur vel lorem vel erat dapibus lobortis. Donec dignissim tellus at arcu.
-Quisque molestie pulvinar sem.
+The register tag must include the "app" and "url" attributes. The first is used
+by the framework to identify the app, and the second to forward messages using
+HTTP. Drivers are specified with a list of "driver" tags, each of which must
+include an "id" attribute representing the driver ID.
 
-Nulla magna neque, ullamcorper tempus, luctus eget, malesuada ut, velit. Morbi
-felis. Praesent in purus at ipsum cursus posuere. Morbi bibendum facilisis
-eros. Phasellus aliquam sapien in erat. Praesent venenatis diam dignissim dui.
-Praesent risus erat, iaculis ac, dapibus sed, imperdiet ac, erat. Nullam sed
-ipsum. Phasellus non dolor. Donec ut elit.
+REQUIRE
+^^^^^^^
 
-Sed risus.
-
-Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Vestibulum sem lacus,
-commodo vitae, aliquam ut, posuere eget, dui. Praesent massa dui, mattis et,
-vehicula.
+The require tag must include the "app" attribute, which has the same meaning as
+it does for the register tag. Drivers are specified with a list of "driver"
+tags, each of which must include an "id" attribute representing the driver ID.
 
 Future Developments
 -------------------
 
-Justo ac sem.
+There are several planned updates to the protocol, which will probably be
+indicated by version numbers in the XML namespace. This will ensure
+compatibility by allowing newer applications to bundle newer protocol features
+into their messages that will be ignored by older versions of the framework.
+Some of these features include:
 
-Pellentesque at dolor non lectus sagittis semper. Donec quis mi. Duis eget
-pede. Phasellus arcu tellus, ultricies id, consequat id, lobortis nec, diam.
-Suspendisse sed nunc. Pellentesque id magna. Morbi interdum quam at est.
-Maecenas eleifend mi in urna. Praesent et lectus ac nibh luctus viverra. In vel
-dolor sed nibh sollicitudin tincidunt. Ut consequat nisi sit amet nibh. Nunc mi
-tortor, tristique sit amet, rhoncus porta, malesuada elementum, nisi. Integer
-vitae enim quis risus aliquet gravida. Curabitur vel lorem vel erat dapibus
-lobortis. Donec dignissim tellus at arcu. Quisque molestie pulvinar sem.
+* Allowing other services besides drivers to be specified in register/require
+  tags
+* Adding a "protocol" attribute to register, which determines the method of
+  notifying the application (e.g. HTTP, HTTPS, XMPP)
+* Allowing register/require tags to specify drivers by name instead of ID
+* Commands to control drivers (restart, stop)
+* A "status" tag that will request an update containing a bundle of information
+  about the framework
 
-Nulla magna neque, ullamcorper tempus, luctus eget.
+
+
+
 
 
