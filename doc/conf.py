@@ -214,7 +214,7 @@ latex_documents = [
 
 pdf_documents = [ 
     #('filename', u'output filename', 'Title', 'author(s)'),
-    ('index', u'turkframework', u'Turk Framework', u"Rob O'Dwyer"),
+    ('index', u'turkframework', u'Turk Framework Documentation', u"Rob O'Dwyer"),
 ]
 
 # A comma-separated list of custom stylesheets. Example:
@@ -238,7 +238,7 @@ pdf_stylesheets = ['sphinx','kerning','a4']
 # Section level that forces a break page.
 # For example: 1 means top-level sections start in a new page
 # 0 means disabled
-#pdf_break_level = 0
+pdf_break_level = 1
 
 # When a section starts in a new page, force it to be 'even', 'odd',
 # or just use 'any'
@@ -246,7 +246,7 @@ pdf_stylesheets = ['sphinx','kerning','a4']
 
 # Insert footnotes where they are defined instead of 
 # at the end.
-#pdf_inline_footnotes = True
+pdf_inline_footnotes = False
 
 # verbosity level. 0 1 or 2
 #pdf_verbosity = 0

@@ -31,13 +31,6 @@ DEFAULT = {
         'drivers': '/usr/share/turk/drivers',
         'debug': False,
     },
-    'xbeed': {
-        'name': 'xbee0',
-        'port': '/dev/ttyUSB0',
-        'baudrate': 9600,
-        'escaping': True,
-        'debug': True,
-    }
 }
 
 def get_config(key, conf=DEFAULT):
@@ -56,20 +49,21 @@ def get_config(key, conf=DEFAULT):
         else:
             raise KeyError(key)
 
-def get_configs(keys, conf=DEFAULT, prefix=''):
+def get_configs(keys, conf=DEFAULT):
     all = []
     for key in keys:
-        all.append(get_config('.'.join([prefix, key]), conf))
+        all.append(get_config(key, conf))
     return tuple(all)
 
 
-def init_logging(module, conf=DEFAULT, debug=True):
-    logging.basicConfig(format = '(%(levelname)s) %(name)s: %(message)s')
-    log = logging.getLogger(module)
-    if debug:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.WARNING)
-    return log
+def init_logging(module, conf=DEFAULT):
+    logfile, logformat, loglevel = get_configs(['log.file', 'log.format', 'log.level'], conf)
 
+    # TODO: add log to file
+
+    logging.basicConfig(format=logformat)
+    log = logging.getLogger(module)
+    log.setLevel(getattr(logging, loglevel))
+
+    return log
 

@@ -19,7 +19,7 @@ import yaml
 import turk
 from turk import get_config
 
-log = turk.init_logging('spawner')
+log = logging.getLogger('spawner')
 
 class Driver(object):
     """ Represents a driver process. Can be started and stopped. """
@@ -72,7 +72,7 @@ class DriverSpawner(dbus.service.Object):
             self.managed_drivers[device_id] = Driver(device_id, path, env)
             log.debug('Autostarted driver for device %s' % (env['DEVICE_ID']))
         except Exception, e:
-            log.debug('failed starting driver "%s": %s' % (filename, e))
+            log.debug('Failed starting driver "%s": %s' % (filename, e))
         finally:
             return False
 
@@ -168,32 +168,36 @@ def get_spawner(bus=None, path='/Spawner'):
 
     
             
-def run(conf='/etc/turk/turk.yml'):
+def run(conf):
     """
     Start Spawner as a standalone process, using information
     from configuration file (or equivalent dictionary-like object)
     """
     import signal
+    try:
+        import setproctitle
+        setproctitle.setproctitle(__name__)
+    except:
+        pass
 
     # Load configuration if given as filename
     if isinstance(conf, basestring):
         try:
             conf = yaml.load(open(conf, 'rU'))
         except Exception:
-            print 'Failed opening configuration file "%s"' % (conf)
+            log.critical('Failed opening configuration file "%s"' % conf)
             exit(1)
 
-    log = turk.init_logging('spawner', conf, debug=get_config('spawner.debug'))
+    log = turk.init_logging('spawner', conf)
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    bus_label = get_config('global.bus', conf)
     try:
-        bus = getattr(dbus, bus_label)()
-    except:
-        default_bus = get_config('global.bus')
-        log.warning("Failed to access bus named %s, using default: %s" % (bus_label, default_bus))
-        bus = getattr(dbus, default_bus)()
+        bus = dbus.SessionBus()
+    except dbus.DBusException:
+        log.critical('Failed to connect to DBus SessionBus')
+        log.debug('DBus UNIX socket is at %s' % os.getenv('DBUS_SESSION_BUS_ADDRESS'))
+        exit(1)
 
     driver_dir = get_config('spawner.drivers', conf)
     autostart = get_config('spawner.autostart', conf)

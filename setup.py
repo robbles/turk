@@ -7,6 +7,7 @@ setup (
     name = 'Turk',
     version = '0.1.1',
     packages = find_packages(),
+    zip_safe = False,
 
     install_requires=['twisted', 'pyserial', 'PyYAML', 'wokkel'],
 

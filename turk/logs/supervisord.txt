@@ -1,0 +1,893 @@
+2010-07-04 18:16:36,659 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 18:16:36,659 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 18:16:36,659 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 18:16:36,711 INFO RPC interface 'supervisor' initialized
+2010-07-04 18:16:36,711 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 18:16:36,712 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 18:16:36,714 INFO daemonizing the supervisord process
+2010-07-04 18:16:36,716 INFO supervisord started with pid 38353
+2010-07-04 18:16:37,720 INFO spawned: 'bridge' with pid 38354
+2010-07-04 18:16:37,723 INFO spawned: 'giraffe' with pid 38355
+2010-07-04 18:16:37,726 INFO spawned: 'poodle' with pid 38356
+2010-07-04 18:16:38,295 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:16:39,299 INFO spawned: 'bridge' with pid 38357
+2010-07-04 18:16:39,300 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:16:39,300 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:16:39,818 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:16:41,823 INFO spawned: 'bridge' with pid 38360
+2010-07-04 18:16:42,310 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:16:45,316 INFO spawned: 'bridge' with pid 38363
+2010-07-04 18:16:45,805 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:16:46,806 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 18:30:45,869 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 18:30:45,870 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 18:30:45,870 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 18:31:02,786 INFO waiting for giraffe, poodle to die
+2010-07-04 18:31:02,792 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 18:31:03,794 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 18:31:15,467 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 18:31:15,467 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 18:31:15,467 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 18:31:15,519 INFO RPC interface 'supervisor' initialized
+2010-07-04 18:31:15,519 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 18:31:15,519 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 18:31:15,522 INFO daemonizing the supervisord process
+2010-07-04 18:31:15,524 INFO supervisord started with pid 38414
+2010-07-04 18:31:16,528 INFO spawned: 'bridge' with pid 38415
+2010-07-04 18:31:16,531 INFO spawned: 'giraffe' with pid 38416
+2010-07-04 18:31:16,535 INFO spawned: 'poodle' with pid 38417
+2010-07-04 18:31:17,023 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:31:18,027 INFO spawned: 'bridge' with pid 38418
+2010-07-04 18:31:18,027 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:31:18,028 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:31:18,518 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:31:21,209 INFO spawned: 'bridge' with pid 38420
+2010-07-04 18:31:21,695 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:31:24,700 INFO spawned: 'bridge' with pid 38421
+2010-07-04 18:31:25,190 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:31:26,191 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 18:39:48,560 INFO waiting for giraffe, poodle to die
+2010-07-04 18:39:48,561 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 18:39:48,562 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 18:40:04,717 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 18:40:04,717 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 18:40:04,717 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 18:40:04,770 INFO RPC interface 'supervisor' initialized
+2010-07-04 18:40:04,770 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 18:40:04,771 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 18:40:04,773 INFO daemonizing the supervisord process
+2010-07-04 18:40:04,775 INFO supervisord started with pid 38455
+2010-07-04 18:40:05,779 INFO spawned: 'bridge' with pid 38456
+2010-07-04 18:40:05,782 INFO spawned: 'giraffe' with pid 38457
+2010-07-04 18:40:05,786 INFO spawned: 'poodle' with pid 38458
+2010-07-04 18:40:06,335 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:40:06,883 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:40:06,883 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:40:07,902 INFO spawned: 'bridge' with pid 38460
+2010-07-04 18:40:08,388 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:40:10,393 INFO spawned: 'bridge' with pid 38461
+2010-07-04 18:40:10,887 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:40:13,893 INFO spawned: 'bridge' with pid 38462
+2010-07-04 18:40:14,385 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:40:15,386 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 18:40:42,782 INFO waiting for giraffe, poodle to die
+2010-07-04 18:40:42,782 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 18:40:42,783 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 18:44:00,507 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 18:44:00,507 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 18:44:00,507 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 18:44:00,560 INFO RPC interface 'supervisor' initialized
+2010-07-04 18:44:00,560 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 18:44:00,560 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 18:44:00,562 INFO daemonizing the supervisord process
+2010-07-04 18:44:00,564 INFO supervisord started with pid 38478
+2010-07-04 18:44:01,569 INFO spawned: 'bridge' with pid 38479
+2010-07-04 18:44:01,572 INFO spawned: 'giraffe' with pid 38480
+2010-07-04 18:44:01,575 INFO spawned: 'poodle' with pid 38481
+2010-07-04 18:44:02,066 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:44:03,070 INFO spawned: 'bridge' with pid 38482
+2010-07-04 18:44:03,071 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:44:03,071 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 18:44:03,559 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:44:05,564 INFO spawned: 'bridge' with pid 38483
+2010-07-04 18:44:06,060 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:44:09,546 INFO spawned: 'bridge' with pid 38485
+2010-07-04 18:44:10,031 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 18:44:11,032 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 19:39:40,603 INFO waiting for giraffe, poodle to die
+2010-07-04 19:39:40,613 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 19:39:41,615 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 19:48:32,086 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 19:48:32,086 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 19:48:32,086 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 19:48:32,142 INFO RPC interface 'supervisor' initialized
+2010-07-04 19:48:32,142 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 19:48:32,142 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 19:48:32,144 INFO daemonizing the supervisord process
+2010-07-04 19:48:32,145 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 19:48:32,146 INFO supervisord started with pid 48827
+2010-07-04 19:48:33,151 INFO spawned: 'bridge' with pid 48828
+2010-07-04 19:48:33,154 INFO spawned: 'poodle' with pid 48829
+2010-07-04 19:48:33,157 INFO spawned: 'giraffe' with pid 48830
+2010-07-04 19:48:33,168 INFO spawned: 'dbus-daemon' with pid 48831
+2010-07-04 19:48:33,774 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:48:34,778 INFO spawned: 'bridge' with pid 48832
+2010-07-04 19:48:34,779 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:48:34,779 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:48:35,271 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:48:37,296 INFO spawned: 'bridge' with pid 48834
+2010-07-04 19:48:37,781 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:48:40,786 INFO spawned: 'bridge' with pid 48836
+2010-07-04 19:48:41,276 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:48:42,277 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 19:48:43,278 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 19:52:21,916 INFO spawned: 'bridge' with pid 48863
+2010-07-04 19:52:22,427 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:52:23,431 INFO spawned: 'bridge' with pid 48864
+2010-07-04 19:52:23,922 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:52:25,930 INFO spawned: 'bridge' with pid 48865
+2010-07-04 19:52:26,420 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:52:30,289 INFO spawned: 'bridge' with pid 48866
+2010-07-04 19:52:30,781 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:52:31,782 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-07-04 19:54:15,046 INFO waiting for poodle, giraffe, dbus-daemon to die
+2010-07-04 19:54:15,047 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 19:54:16,048 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 19:54:16,050 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 19:54:19,867 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 19:54:19,867 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 19:54:19,867 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 19:54:19,920 INFO RPC interface 'supervisor' initialized
+2010-07-04 19:54:19,920 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 19:54:19,921 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 19:54:19,923 INFO daemonizing the supervisord process
+2010-07-04 19:54:19,924 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 19:54:19,925 INFO supervisord started with pid 48883
+2010-07-04 19:54:20,929 INFO spawned: 'bridge' with pid 48884
+2010-07-04 19:54:20,932 INFO spawned: 'poodle' with pid 48885
+2010-07-04 19:54:20,935 INFO spawned: 'giraffe' with pid 48886
+2010-07-04 19:54:20,941 INFO spawned: 'dbus-daemon' with pid 48887
+2010-07-04 19:54:22,473 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:54:22,474 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:54:31,819 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 19:54:31,819 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 19:55:12,308 INFO stopped: bridge (exit status 0)
+2010-07-04 19:55:13,317 INFO spawned: 'bridge' with pid 48897
+2010-07-04 19:55:23,789 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 19:57:17,399 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-04 19:57:17,400 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 19:57:17,401 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 19:57:17,402 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 19:57:17,412 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 19:58:50,689 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 19:58:50,690 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 19:58:50,690 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 19:58:50,742 INFO RPC interface 'supervisor' initialized
+2010-07-04 19:58:50,742 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 19:58:50,742 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 19:58:50,744 INFO daemonizing the supervisord process
+2010-07-04 19:58:50,746 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 19:58:50,747 INFO supervisord started with pid 48932
+2010-07-04 19:58:51,751 INFO spawned: 'bridge' with pid 48934
+2010-07-04 19:58:51,754 INFO spawned: 'poodle' with pid 48935
+2010-07-04 19:58:51,757 INFO spawned: 'giraffe' with pid 48936
+2010-07-04 19:58:51,764 INFO spawned: 'dbus-daemon' with pid 48937
+2010-07-04 19:58:53,226 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:58:53,227 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 19:59:02,304 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 19:59:02,305 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:01:46,007 INFO stopped: bridge (exit status 0)
+2010-07-04 20:01:47,014 INFO spawned: 'bridge' with pid 48961
+2010-07-04 20:01:57,564 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:02:35,835 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-04 20:02:35,836 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 20:02:35,841 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 20:02:35,842 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 20:02:35,842 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 20:02:40,471 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 20:02:40,471 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 20:02:40,471 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 20:02:40,524 INFO RPC interface 'supervisor' initialized
+2010-07-04 20:02:40,524 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 20:02:40,524 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 20:02:40,527 INFO daemonizing the supervisord process
+2010-07-04 20:02:40,528 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 20:02:40,528 INFO supervisord started with pid 48971
+2010-07-04 20:02:41,533 INFO spawned: 'bridge' with pid 48973
+2010-07-04 20:02:41,537 INFO spawned: 'poodle' with pid 48974
+2010-07-04 20:02:41,540 INFO spawned: 'giraffe' with pid 48975
+2010-07-04 20:02:41,545 INFO spawned: 'dbus-daemon' with pid 48976
+2010-07-04 20:02:43,006 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:02:43,006 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:02:52,256 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:02:52,256 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:07:38,164 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-04 20:07:38,170 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 20:07:38,170 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 20:07:38,173 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 20:07:38,173 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 20:07:41,572 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 20:07:41,572 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 20:07:41,572 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 20:07:41,625 INFO RPC interface 'supervisor' initialized
+2010-07-04 20:07:41,626 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 20:07:41,626 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 20:07:41,628 INFO daemonizing the supervisord process
+2010-07-04 20:07:41,629 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 20:07:41,630 INFO supervisord started with pid 49018
+2010-07-04 20:07:42,635 INFO spawned: 'bridge' with pid 49020
+2010-07-04 20:07:42,638 INFO spawned: 'poodle' with pid 49021
+2010-07-04 20:07:42,641 INFO spawned: 'giraffe' with pid 49022
+2010-07-04 20:07:42,651 INFO spawned: 'dbus-daemon' with pid 49023
+2010-07-04 20:07:44,120 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:07:44,120 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:07:53,109 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:07:53,110 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:12:56,465 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-04 20:12:56,471 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 20:12:56,472 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 20:12:56,472 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 20:12:56,473 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 20:13:35,328 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 20:13:35,328 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 20:13:35,328 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 20:13:35,382 INFO RPC interface 'supervisor' initialized
+2010-07-04 20:13:35,382 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 20:13:35,382 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 20:13:35,384 INFO daemonizing the supervisord process
+2010-07-04 20:13:35,385 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 20:13:35,386 INFO supervisord started with pid 49076
+2010-07-04 20:13:36,389 INFO spawned: 'bridge' with pid 49079
+2010-07-04 20:13:36,392 INFO spawned: 'poodle' with pid 49080
+2010-07-04 20:13:36,400 INFO spawned: 'giraffe' with pid 49081
+2010-07-04 20:13:36,405 INFO spawned: 'dbus-daemon' with pid 49082
+2010-07-04 20:13:37,958 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:13:37,959 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 20:13:46,419 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 20:13:46,419 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 21:41:26,488 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 21:41:26,488 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 21:41:26,488 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 21:41:49,008 WARN received SIGTERM indicating exit request
+2010-07-04 21:41:49,008 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-04 21:41:50,010 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-04 21:41:50,011 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-04 21:41:50,012 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-04 21:41:50,017 INFO exited: bridge (exit status 1; not expected)
+2010-07-04 21:42:02,913 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-04 21:42:02,913 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-04 21:42:02,913 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-04 21:42:02,967 INFO RPC interface 'supervisor' initialized
+2010-07-04 21:42:02,967 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-07-04 21:42:02,967 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-07-04 21:42:02,970 INFO daemonizing the supervisord process
+2010-07-04 21:42:02,971 INFO set current directory: '/Users/rob/turk/turk/runtime'
+2010-07-04 21:42:02,971 INFO supervisord started with pid 49373
+2010-07-04 21:42:03,976 INFO spawned: 'bridge' with pid 49374
+2010-07-04 21:42:03,979 INFO spawned: 'poodle' with pid 49375
+2010-07-04 21:42:03,982 INFO spawned: 'giraffe' with pid 49376
+2010-07-04 21:42:03,992 INFO spawned: 'dbus-daemon' with pid 49377
+2010-07-04 21:42:05,659 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 21:42:05,659 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-07-04 21:42:14,142 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-04 21:42:14,142 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-07-06 23:22:59,403 WARN Included extra file "/Users/rob/turk/turk/runtime/./runtime.conf" during parsing
+2010-07-06 23:22:59,403 WARN Included extra file "/Users/rob/turk/turk/runtime/../drivers.conf" during parsing
+2010-07-06 23:22:59,403 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-07-06 23:27:05,739 WARN received SIGTERM indicating exit request
+2010-07-06 23:27:05,739 INFO waiting for bridge, poodle, giraffe, dbus-daemon to die
+2010-07-06 23:27:06,742 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-07-06 23:27:06,743 INFO stopped: giraffe (terminated by SIGTERM)
+2010-07-06 23:27:06,744 INFO stopped: poodle (terminated by SIGTERM)
+2010-07-06 23:27:06,748 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 18:59:19,888 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 18:59:19,889 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 18:59:19,889 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 18:59:19,951 INFO RPC interface 'supervisor' initialized
+2010-08-01 18:59:19,951 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 18:59:19,951 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 18:59:19,954 INFO daemonizing the supervisord process
+2010-08-01 18:59:19,955 INFO set current directory: '/Users/rob/turk/turk/config'
+2010-08-01 18:59:19,956 INFO supervisord started with pid 49741
+2010-08-01 19:01:01,958 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 19:01:01,958 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 19:01:01,958 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 19:01:02,012 INFO RPC interface 'supervisor' initialized
+2010-08-01 19:01:02,012 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 19:01:02,012 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 19:01:02,014 INFO daemonizing the supervisord process
+2010-08-01 19:01:02,016 INFO set current directory: '/Users/rob/turk/turk/config'
+2010-08-01 19:01:02,017 INFO supervisord started with pid 49773
+2010-08-01 20:21:41,878 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:21:41,878 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:21:41,878 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:21:41,932 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:21:41,933 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:21:41,933 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:21:41,933 INFO supervisord started with pid 50885
+2010-08-01 20:21:42,936 INFO spawned: 'bridge' with pid 50888
+2010-08-01 20:21:42,940 INFO spawned: 'poodle' with pid 50889
+2010-08-01 20:21:42,946 INFO spawned: 'giraffe' with pid 50890
+2010-08-01 20:21:42,956 INFO spawned: 'dbus-daemon' with pid 50891
+2010-08-01 20:21:43,168 DEBG 'bridge' stdout output:
+Traceback (most recent call last):
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 216, in <module>
+    main()
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 211, in main
+    args = parser.parse_args()
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1698, in parse_args
+
+2010-08-01 20:21:43,169 DEBG 'bridge' stdout output:
+    args, argv = self.parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1730, in parse_known_args
+    return self._parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1932, in _parse_known_args
+    start_index = consume_optional(start_index)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1872, in consume_optional
+
+2010-08-01 20:21:43,169 DEBG 'bridge' stdout output:
+    take_action(action, args, option_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1784, in take_action
+
+2010-08-01 20:21:43,170 DEBG 'bridge' stdout output:
+    argument_values = self._get_values(action, argument_strings)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2210, in _get_values
+
+2010-08-01 20:21:43,171 DEBG 'bridge' stdout output:
+    value = self._get_value(action, arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2239, in _get_value
+
+2010-08-01 20:21:43,171 DEBG 'bridge' stdout output:
+    result = type_func(arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1156, in __call__
+
+2010-08-01 20:21:43,172 DEBG 'bridge' stdout output:
+    return open(string, self._mode)
+IOError: 
+2010-08-01 20:21:43,172 DEBG 'bridge' stdout output:
+[Errno 2] No such file or directory: '/Users/rob/turk/turk/config/turk.yml'
+
+2010-08-01 20:21:43,182 DEBG fd 8 closed, stopped monitoring <POutputDispatcher at 4326920136 for <Subprocess at 4326591448 with name bridge in state STARTING> (stdout)>
+2010-08-01 20:21:43,182 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:21:43,183 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:21:44,186 INFO spawned: 'bridge' with pid 50892
+2010-08-01 20:21:44,187 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:21:44,187 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:21:44,394 DEBG 'bridge' stdout output:
+Traceback (most recent call last):
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 216, in <module>
+    main()
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 211, in main
+    args = parser.parse_args()
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1698, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1730, in parse_known_args
+
+2010-08-01 20:21:44,395 DEBG 'bridge' stdout output:
+    return self._parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1932, in _parse_known_args
+    start_index = consume_optional(start_index)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1872, in consume_optional
+    take_action(action, args, option_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1784, in take_action
+    argument_values = self._get_values(action, argument_strings)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2210, in _get_values
+    value = self._get_value(action, arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2239, in _get_value
+    result = type_func(arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1156, in __call__
+
+2010-08-01 20:21:44,398 DEBG 'bridge' stdout output:
+    return open(string, self._mode)
+IOError: [Errno 2] No such file or directory: '/Users/rob/turk/turk/config/turk.yml'
+
+2010-08-01 20:21:44,406 DEBG fd 8 closed, stopped monitoring <POutputDispatcher at 4326920136 for <Subprocess at 4326591448 with name bridge in state STARTING> (stdout)>
+2010-08-01 20:21:44,406 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:21:44,407 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:21:46,411 INFO spawned: 'bridge' with pid 50893
+2010-08-01 20:21:46,609 DEBG 'bridge' stdout output:
+Traceback (most recent call last):
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 216, in <module>
+    main()
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 211, in main
+    args = parser.parse_args()
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1698, in parse_args
+
+2010-08-01 20:21:46,610 DEBG 'bridge' stdout output:
+    args, argv = self.parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1730, in parse_known_args
+    return self._parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1932, in _parse_known_args
+    start_index = consume_optional(start_index)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1872, in consume_optional
+
+2010-08-01 20:21:46,610 DEBG 'bridge' stdout output:
+    take_action(action, args, option_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1784, in take_action
+
+2010-08-01 20:21:46,610 DEBG 'bridge' stdout output:
+    argument_values = self._get_values(action, argument_strings)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2210, in _get_values
+
+2010-08-01 20:21:46,611 DEBG 'bridge' stdout output:
+    value = self._get_value(action, arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2239, in _get_value
+
+2010-08-01 20:21:46,611 DEBG 'bridge' stdout output:
+    result = type_func(arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1156, in __call__
+
+2010-08-01 20:21:46,612 DEBG 'bridge' stdout output:
+    return open(string, self._mode)
+IOError: [Errno 2] No such file or directory: '/Users/rob/turk/turk/config/turk.yml'
+
+2010-08-01 20:21:46,622 DEBG fd 8 closed, stopped monitoring <POutputDispatcher at 4326920136 for <Subprocess at 4326591448 with name bridge in state STARTING> (stdout)>
+2010-08-01 20:21:46,623 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:21:46,623 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:21:49,627 INFO spawned: 'bridge' with pid 50895
+2010-08-01 20:21:49,825 DEBG 'bridge' stdout output:
+Traceback (most recent call last):
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 216, in <module>
+    main()
+  File "/Users/rob/turk/turk/config/../turkctl.py", line 211, in main
+    args = parser.parse_args()
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1698, in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1730, in parse_known_args
+
+2010-08-01 20:21:49,825 DEBG 'bridge' stdout output:
+    return self._parse_known_args(args, namespace)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1932, in _parse_known_args
+
+2010-08-01 20:21:49,826 DEBG 'bridge' stdout output:
+    start_index = consume_optional(start_index)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1872, in consume_optional
+
+2010-08-01 20:21:49,826 DEBG 'bridge' stdout output:
+    take_action(action, args, option_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1784, in take_action
+
+2010-08-01 20:21:49,827 DEBG 'bridge' stdout output:
+    argument_values = self._get_values(action, argument_strings)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2210, in _get_values
+
+2010-08-01 20:21:49,827 DEBG 'bridge' stdout output:
+    value = self._get_value(action, arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 2239, in _get_value
+
+2010-08-01 20:21:49,828 DEBG 'bridge' stdout output:
+    result = type_func(arg_string)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.6/lib/python2.6/site-packages/argparse.py", line 1156, in __call__
+
+2010-08-01 20:21:49,828 DEBG 'bridge' stdout output:
+    return open(string, self._mode)
+IOError: [Errno 2] No such file or directory: '/Users/rob/turk/turk/config/turk.yml'
+2010-08-01 20:21:49,829 DEBG 'bridge' stdout output:
+
+
+2010-08-01 20:21:49,839 DEBG fd 8 closed, stopped monitoring <POutputDispatcher at 4326920136 for <Subprocess at 4326591448 with name bridge in state STARTING> (stdout)>
+2010-08-01 20:21:49,839 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:21:49,839 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:21:50,840 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:21:53,841 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:22:21,116 WARN received SIGINT indicating exit request
+2010-08-01 20:22:21,123 INFO waiting for poodle, giraffe, dbus-daemon to die
+2010-08-01 20:22:22,124 DEBG fd 19 closed, stopped monitoring <POutputDispatcher at 4326945136 for <Subprocess at 4326590656 with name dbus-daemon in state RUNNING> (stdout)>
+2010-08-01 20:22:22,124 DEBG killing dbus-daemon (pid 50891) with signal SIGTERM
+2010-08-01 20:22:22,125 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:22:22,125 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:22:22,126 DEBG fd 18 closed, stopped monitoring <POutputDispatcher at 4326944848 for <Subprocess at 4326591160 with name giraffe in state RUNNING> (stderr)>
+2010-08-01 20:22:22,126 DEBG fd 14 closed, stopped monitoring <POutputDispatcher at 4326924016 for <Subprocess at 4326591160 with name giraffe in state RUNNING> (stdout)>
+2010-08-01 20:22:22,126 DEBG killing giraffe (pid 50890) with signal SIGTERM
+2010-08-01 20:22:22,127 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:22:22,127 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:22:22,127 DEBG fd 11 closed, stopped monitoring <POutputDispatcher at 4326923224 for <Subprocess at 4326590872 with name poodle in state RUNNING> (stdout)>
+2010-08-01 20:22:22,127 DEBG fd 13 closed, stopped monitoring <POutputDispatcher at 4326923440 for <Subprocess at 4326590872 with name poodle in state RUNNING> (stderr)>
+2010-08-01 20:22:22,128 DEBG killing poodle (pid 50889) with signal SIGTERM
+2010-08-01 20:22:22,128 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:22:22,128 DEBG received SIGCHLD indicating a child quit
+2010-08-01 20:38:30,315 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:38:30,316 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:38:30,316 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:38:30,372 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:38:30,373 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:38:30,373 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:38:30,373 INFO supervisord started with pid 51119
+2010-08-01 20:38:31,376 INFO spawned: 'bridge' with pid 51121
+2010-08-01 20:38:31,380 INFO spawned: 'poodle' with pid 51122
+2010-08-01 20:38:31,401 INFO spawned: 'giraffe' with pid 51123
+2010-08-01 20:38:31,413 INFO spawned: 'dbus-daemon' with pid 51124
+2010-08-01 20:38:31,627 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:38:32,631 INFO spawned: 'bridge' with pid 51126
+2010-08-01 20:38:32,633 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:38:32,633 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:38:32,841 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:38:34,845 INFO spawned: 'bridge' with pid 51127
+2010-08-01 20:38:35,054 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:38:38,059 INFO spawned: 'bridge' with pid 51129
+2010-08-01 20:38:38,268 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:38:39,269 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:38:42,270 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:38:56,909 WARN received SIGINT indicating exit request
+2010-08-01 20:38:56,909 INFO waiting for poodle, giraffe, dbus-daemon to die
+2010-08-01 20:38:57,911 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:38:57,912 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:38:57,913 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:43:40,397 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:43:40,397 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:43:40,397 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:43:40,452 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:43:40,453 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:43:40,453 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:43:40,453 INFO supervisord started with pid 51189
+2010-08-01 20:43:41,456 INFO spawned: 'bridge' with pid 51192
+2010-08-01 20:43:41,459 INFO spawned: 'giraffe' with pid 51193
+2010-08-01 20:43:41,474 INFO spawned: 'dbus-daemon' with pid 51194
+2010-08-01 20:43:41,478 INFO spawned: 'poodle' with pid 51195
+2010-08-01 20:43:41,713 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:43:42,717 INFO spawned: 'bridge' with pid 51196
+2010-08-01 20:43:42,718 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:43:42,719 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:43:42,928 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:43:44,932 INFO spawned: 'bridge' with pid 51197
+2010-08-01 20:43:45,141 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:43:48,145 INFO spawned: 'bridge' with pid 51199
+2010-08-01 20:43:48,354 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:43:49,355 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:43:52,356 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:43:57,689 WARN received SIGINT indicating exit request
+2010-08-01 20:43:57,690 INFO waiting for giraffe, dbus-daemon, poodle to die
+2010-08-01 20:43:57,692 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:43:57,699 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:43:58,700 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:44:03,419 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:44:03,419 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:44:03,419 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:44:03,472 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:44:03,472 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:44:03,472 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:44:03,474 INFO daemonizing the supervisord process
+2010-08-01 20:44:03,475 INFO set current directory: '/Users/rob/turk/turk/config'
+2010-08-01 20:44:03,476 INFO supervisord started with pid 51204
+2010-08-01 20:44:29,361 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:44:29,361 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:44:29,361 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:44:29,415 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:44:29,415 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:44:29,416 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:44:29,416 INFO supervisord started with pid 51214
+2010-08-01 20:44:30,419 INFO spawned: 'bridge' with pid 51215
+2010-08-01 20:44:30,423 INFO spawned: 'giraffe' with pid 51216
+2010-08-01 20:44:30,429 INFO spawned: 'dbus-daemon' with pid 51217
+2010-08-01 20:44:30,432 INFO spawned: 'poodle' with pid 51218
+2010-08-01 20:44:30,659 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:44:31,663 INFO spawned: 'bridge' with pid 51220
+2010-08-01 20:44:31,665 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:44:31,665 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:44:31,877 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:44:33,881 INFO spawned: 'bridge' with pid 51221
+2010-08-01 20:44:34,090 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:44:37,094 INFO spawned: 'bridge' with pid 51223
+2010-08-01 20:44:37,304 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:44:38,304 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:44:41,306 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:45:08,446 WARN received SIGINT indicating exit request
+2010-08-01 20:45:08,447 INFO waiting for giraffe, dbus-daemon, poodle to die
+2010-08-01 20:45:08,447 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:45:08,460 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:45:09,461 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:45:37,578 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:45:37,578 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:45:37,578 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:45:37,631 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:45:37,631 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:45:37,631 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:45:37,633 INFO daemonizing the supervisord process
+2010-08-01 20:45:37,634 INFO set current directory: '/Users/rob/turk/turk/config'
+2010-08-01 20:45:37,635 INFO supervisord started with pid 51241
+2010-08-01 20:45:50,427 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:45:50,427 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:45:50,427 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:45:50,481 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:45:50,482 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:45:50,482 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:45:50,482 INFO supervisord started with pid 51246
+2010-08-01 20:45:51,485 INFO spawned: 'bridge' with pid 51247
+2010-08-01 20:45:51,489 INFO spawned: 'giraffe' with pid 51248
+2010-08-01 20:45:51,508 INFO spawned: 'dbus-daemon' with pid 51249
+2010-08-01 20:45:51,532 INFO spawned: 'poodle' with pid 51250
+2010-08-01 20:45:51,721 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:45:52,725 INFO spawned: 'bridge' with pid 51252
+2010-08-01 20:45:52,727 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:45:52,727 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:45:52,946 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:45:55,913 INFO spawned: 'bridge' with pid 51254
+2010-08-01 20:45:56,142 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:45:59,147 INFO spawned: 'bridge' with pid 51256
+2010-08-01 20:45:59,360 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:46:00,361 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:46:02,103 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:46:12,371 WARN received SIGINT indicating exit request
+2010-08-01 20:46:12,372 INFO waiting for giraffe, dbus-daemon, poodle to die
+2010-08-01 20:46:12,373 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:46:12,385 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:46:13,386 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:46:16,733 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:46:16,733 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:46:16,733 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:46:16,788 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:46:16,788 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:46:16,789 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:46:16,789 INFO supervisord started with pid 51260
+2010-08-01 20:46:17,792 INFO spawned: 'bridge' with pid 51262
+2010-08-01 20:46:17,795 INFO spawned: 'giraffe' with pid 51263
+2010-08-01 20:46:17,805 INFO spawned: 'dbus-daemon' with pid 51264
+2010-08-01 20:46:17,817 INFO spawned: 'poodle' with pid 51265
+2010-08-01 20:46:18,038 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:46:19,041 INFO spawned: 'bridge' with pid 51267
+2010-08-01 20:46:19,042 INFO success: giraffe entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:46:19,042 INFO success: poodle entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+2010-08-01 20:46:19,289 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:46:21,293 INFO spawned: 'bridge' with pid 51268
+2010-08-01 20:46:21,509 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:46:24,704 INFO spawned: 'bridge' with pid 51270
+2010-08-01 20:46:24,915 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 20:46:25,915 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:46:27,917 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:54:29,264 WARN received SIGINT indicating exit request
+2010-08-01 20:54:29,264 INFO waiting for giraffe, dbus-daemon, poodle to die
+2010-08-01 20:54:29,265 INFO stopped: poodle (terminated by SIGTERM)
+2010-08-01 20:54:29,277 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 20:54:30,278 INFO stopped: giraffe (terminated by SIGTERM)
+2010-08-01 20:54:33,971 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:54:33,972 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:54:33,972 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:54:34,029 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:54:34,029 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:54:34,029 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:54:34,029 INFO supervisord started with pid 51382
+2010-08-01 20:54:35,030 INFO spawnerr: can't find command '/Users/rob/turk/turk/config/turkctl.py'
+2010-08-01 20:54:35,033 INFO spawned: 'dbus-daemon' with pid 51384
+2010-08-01 20:54:35,047 INFO exited: dbus-daemon (exit status 1; not expected)
+2010-08-01 20:54:36,048 INFO spawnerr: can't find command '/Users/rob/turk/turk/config/turkctl.py'
+2010-08-01 20:54:36,052 INFO spawned: 'dbus-daemon' with pid 51385
+2010-08-01 20:54:36,065 INFO exited: dbus-daemon (exit status 1; not expected)
+2010-08-01 20:54:38,067 INFO spawnerr: can't find command '/Users/rob/turk/turk/config/turkctl.py'
+2010-08-01 20:54:38,070 INFO spawned: 'dbus-daemon' with pid 51387
+2010-08-01 20:54:38,084 INFO exited: dbus-daemon (exit status 1; not expected)
+2010-08-01 20:54:41,086 INFO spawnerr: can't find command '/Users/rob/turk/turk/config/turkctl.py'
+2010-08-01 20:54:41,086 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 20:54:41,089 INFO spawned: 'dbus-daemon' with pid 51388
+2010-08-01 20:54:41,103 INFO exited: dbus-daemon (exit status 1; not expected)
+2010-08-01 20:54:42,103 INFO gave up: dbus-daemon entered FATAL state, too many start retries too quickly
+2010-08-01 20:55:09,998 WARN received SIGINT indicating exit request
+2010-08-01 20:58:24,244 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 20:58:24,244 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 20:58:24,244 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 20:58:24,299 INFO RPC interface 'supervisor' initialized
+2010-08-01 20:58:24,299 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 20:58:24,299 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 20:58:24,300 INFO supervisord started with pid 51439
+2010-08-01 20:58:25,303 INFO spawned: 'bridge' with pid 51442
+2010-08-01 20:58:25,307 INFO spawned: 'dbus-daemon' with pid 51443
+2010-08-01 20:58:35,839 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:58:35,839 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 20:58:40,894 INFO spawned: 'spawner' with pid 51449
+2010-08-01 20:58:51,227 INFO success: spawner entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 21:54:31,903 WARN received SIGINT indicating exit request
+2010-08-01 21:54:31,903 INFO waiting for bridge, spawner, dbus-daemon to die
+2010-08-01 21:54:31,914 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 21:54:31,914 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 21:54:31,915 INFO stopped: spawner (exit status 1)
+2010-08-01 21:57:13,731 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 21:57:13,731 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 21:57:13,731 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 21:57:13,785 INFO RPC interface 'supervisor' initialized
+2010-08-01 21:57:13,785 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 21:57:13,785 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 21:57:13,785 INFO supervisord started with pid 52167
+2010-08-01 21:57:14,789 INFO spawned: 'bridge' with pid 52169
+2010-08-01 21:57:14,793 INFO spawned: 'dbus-daemon' with pid 52170
+2010-08-01 21:57:25,705 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 21:57:25,705 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 21:57:28,954 WARN received SIGINT indicating exit request
+2010-08-01 21:57:28,955 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 21:57:28,961 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 21:57:28,962 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 22:02:18,044 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:02:18,044 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:02:18,044 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:02:18,098 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:02:18,098 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:02:18,098 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:02:18,099 INFO supervisord started with pid 52236
+2010-08-01 22:02:19,102 INFO spawned: 'bridge' with pid 52238
+2010-08-01 22:02:19,106 INFO spawned: 'dbus-daemon' with pid 52239
+2010-08-01 22:02:19,334 DEBG 'bridge' stdout output:
+[DEBUG] turkctl: RunAction for bridge
+
+2010-08-01 22:02:19,570 DEBG 'bridge' stdout output:
+[DEBUG] bridge: started
+
+2010-08-01 22:02:20,595 DEBG 'bridge' stdout output:
+[DEBUG] bridge: connectionInitialized
+
+2010-08-01 22:02:29,599 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:02:29,599 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:02:43,486 WARN received SIGINT indicating exit request
+2010-08-01 22:02:43,487 DEBG fd 11 closed, stopped monitoring <POutputDispatcher at 4324685440 for <Subprocess at 4324345400 with name dbus-daemon in state RUNNING> (stdout)>
+2010-08-01 22:02:43,487 DEBG killing dbus-daemon (pid 52239) with signal SIGTERM
+2010-08-01 22:02:43,487 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 22:02:43,488 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:02:43,489 DEBG received SIGCHLD indicating a child quit
+2010-08-01 22:02:43,495 DEBG fd 8 closed, stopped monitoring <POutputDispatcher at 4324679760 for <Subprocess at 4324345760 with name bridge in state RUNNING> (stdout)>
+2010-08-01 22:02:43,495 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 22:02:43,496 DEBG received SIGCHLD indicating a child quit
+2010-08-01 22:07:05,655 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:07:05,656 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:07:05,656 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:07:05,710 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:07:05,710 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:07:05,710 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:07:05,711 INFO supervisord started with pid 52313
+2010-08-01 22:07:06,714 INFO spawned: 'bridge' with pid 52315
+2010-08-01 22:07:06,718 INFO spawned: 'dbus-daemon' with pid 52316
+2010-08-01 22:07:13,498 WARN received SIGINT indicating exit request
+2010-08-01 22:07:13,500 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 22:07:13,501 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:07:13,508 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 22:07:34,760 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:07:34,760 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:07:34,760 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:07:34,816 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:07:34,816 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:07:34,816 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:07:34,817 INFO supervisord started with pid 52326
+2010-08-01 22:07:35,820 INFO spawned: 'bridge' with pid 52327
+2010-08-01 22:07:35,824 INFO spawned: 'dbus-daemon' with pid 52328
+2010-08-01 22:07:44,801 WARN received SIGINT indicating exit request
+2010-08-01 22:07:44,802 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 22:07:44,803 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:07:44,810 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 22:11:35,810 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:11:35,810 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:11:35,811 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:11:35,869 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:11:35,869 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:11:35,869 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:11:35,870 INFO supervisord started with pid 52420
+2010-08-01 22:11:36,873 INFO spawned: 'bridge' with pid 52422
+2010-08-01 22:11:36,877 INFO spawned: 'dbus-daemon' with pid 52423
+2010-08-01 22:11:37,435 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:11:37,435 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:11:40,447 WARN received SIGINT indicating exit request
+2010-08-01 22:11:40,448 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 22:11:40,458 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:11:40,463 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 22:36:05,492 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:36:05,492 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:36:05,492 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:36:05,547 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:36:05,547 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:36:05,547 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:36:05,550 INFO daemonizing the supervisord process
+2010-08-01 22:36:05,551 INFO set current directory: '/Users/rob/turk/turk/config/../'
+2010-08-01 22:36:05,552 INFO supervisord started with pid 52830
+2010-08-01 22:36:06,556 INFO spawned: 'bridge' with pid 52831
+2010-08-01 22:36:06,560 INFO spawned: 'dbus-daemon' with pid 52832
+2010-08-01 22:36:07,100 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:36:07,100 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:36:07,123 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:36:08,127 INFO spawned: 'bridge' with pid 52833
+2010-08-01 22:36:08,667 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:36:08,667 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:36:08,689 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:36:10,691 INFO spawned: 'bridge' with pid 52835
+2010-08-01 22:36:11,238 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:36:11,238 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:36:11,260 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:36:14,263 INFO spawned: 'bridge' with pid 52836
+2010-08-01 22:36:14,808 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:36:14,808 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:36:14,830 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:36:15,831 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 22:36:16,832 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:37:32,965 INFO waiting for dbus-daemon to die
+2010-08-01 22:37:32,966 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:37:44,955 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:37:44,955 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:37:44,955 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:37:45,007 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:37:45,007 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:37:45,007 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:37:45,009 INFO daemonizing the supervisord process
+2010-08-01 22:37:45,010 INFO set current directory: '/Users/rob/turk/turk/config/../'
+2010-08-01 22:37:45,011 INFO supervisord started with pid 52865
+2010-08-01 22:37:46,015 INFO spawned: 'bridge' with pid 52866
+2010-08-01 22:37:46,019 INFO spawned: 'dbus-daemon' with pid 52867
+2010-08-01 22:37:46,566 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:37:46,566 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:37:46,616 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:37:47,942 INFO spawned: 'bridge' with pid 52870
+2010-08-01 22:37:48,481 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:37:48,481 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:37:48,503 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:37:50,506 INFO spawned: 'bridge' with pid 52871
+2010-08-01 22:37:51,047 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:37:51,047 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:37:51,069 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:37:54,577 INFO spawned: 'bridge' with pid 52873
+2010-08-01 22:37:55,117 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:37:55,117 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:37:55,139 INFO exited: bridge (exit status 2; not expected)
+2010-08-01 22:37:56,139 INFO gave up: bridge entered FATAL state, too many start retries too quickly
+2010-08-01 22:37:56,139 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:38:31,689 INFO spawned: 'spawner' with pid 52881
+2010-08-01 22:38:32,240 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:38:32,240 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:38:32,263 INFO exited: spawner (exit status 2; not expected)
+2010-08-01 22:38:33,266 INFO spawned: 'spawner' with pid 52884
+2010-08-01 22:38:33,808 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:38:33,808 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:38:33,829 INFO exited: spawner (exit status 2; not expected)
+2010-08-01 22:38:35,835 INFO spawned: 'spawner' with pid 52885
+2010-08-01 22:38:36,376 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:38:36,376 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:38:36,398 INFO exited: spawner (exit status 2; not expected)
+2010-08-01 22:38:39,941 INFO spawned: 'spawner' with pid 52887
+2010-08-01 22:38:40,480 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:38:40,480 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:38:40,502 INFO exited: spawner (exit status 2; not expected)
+2010-08-01 22:38:41,503 INFO gave up: spawner entered FATAL state, too many start retries too quickly
+2010-08-01 22:40:13,788 INFO waiting for dbus-daemon to die
+2010-08-01 22:40:13,789 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:45:56,760 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:45:56,760 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:45:56,760 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 22:45:56,817 INFO RPC interface 'supervisor' initialized
+2010-08-01 22:45:56,817 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 22:45:56,817 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 22:45:56,818 INFO supervisord started with pid 52990
+2010-08-01 22:45:57,821 INFO spawned: 'bridge' with pid 52992
+2010-08-01 22:45:57,825 INFO spawned: 'dbus-daemon' with pid 52993
+2010-08-01 22:45:58,366 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 22:45:58,366 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 22:46:08,677 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:46:08,677 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 22:46:12,704 WARN received SIGINT indicating exit request
+2010-08-01 22:46:12,705 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 22:46:12,723 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 22:46:12,723 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 23:15:29,560 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 23:15:29,560 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 23:15:29,560 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 23:15:29,615 INFO RPC interface 'supervisor' initialized
+2010-08-01 23:15:29,615 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 23:15:29,615 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 23:15:29,615 INFO supervisord started with pid 53479
+2010-08-01 23:15:30,619 INFO spawned: 'bridge' with pid 53481
+2010-08-01 23:15:30,622 INFO spawned: 'dbus-daemon' with pid 53482
+2010-08-01 23:15:41,163 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 23:15:41,163 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 23:15:54,517 WARN received SIGINT indicating exit request
+2010-08-01 23:15:54,518 INFO waiting for bridge, dbus-daemon to die
+2010-08-01 23:15:54,519 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 23:15:54,526 INFO exited: bridge (exit status 1; not expected)
+2010-08-01 23:16:11,366 WARN Included extra file "/Users/rob/turk/turk/config/runtime.conf" during parsing
+2010-08-01 23:16:11,366 WARN Included extra file "/Users/rob/turk/turk/config/drivers.conf" during parsing
+2010-08-01 23:16:11,366 INFO Increased RLIMIT_NOFILE limit to 1024
+2010-08-01 23:16:11,420 INFO RPC interface 'supervisor' initialized
+2010-08-01 23:16:11,420 WARN cElementTree not installed, using slower XML parser for XML-RPC
+2010-08-01 23:16:11,420 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+2010-08-01 23:16:11,421 INFO supervisord started with pid 53493
+2010-08-01 23:16:12,424 INFO spawned: 'bridge' with pid 53494
+2010-08-01 23:16:12,428 INFO spawned: 'dbus-daemon' with pid 53495
+2010-08-01 23:16:22,938 INFO success: bridge entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 23:16:22,938 INFO success: dbus-daemon entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 23:17:53,168 INFO spawned: 'spawner' with pid 53518
+2010-08-01 23:18:03,502 INFO success: spawner entered RUNNING state, process has stayed up for > than 10 seconds (startsecs)
+2010-08-01 23:30:42,464 WARN received SIGINT indicating exit request
+2010-08-01 23:30:42,465 INFO waiting for bridge, spawner, dbus-daemon to die
+2010-08-01 23:30:42,478 INFO exited: spawner (exit status 1; not expected)
+2010-08-01 23:30:42,478 INFO stopped: dbus-daemon (terminated by SIGTERM)
+2010-08-01 23:30:42,479 INFO exited: bridge (exit status 1; not expected)

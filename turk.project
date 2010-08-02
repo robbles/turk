@@ -1,0 +1,25 @@
+turk=/Users/rob/turk/ {
+ CONTRIBUTERS
+ LICENSE
+ Manifest.in
+ README
+ setup.py
+ turk.project
+
+ src=turk CD=. filter="*.py" {
+  __init__.py
+  bridge.py
+  spawner.py
+  turkctl.py
+  xbeed.py
+
+ }
+ conf=turk CD=. filter="*.yaml *.conf config/*.conf" {
+  turk.yaml
+  config/dbus.conf
+  config/drivers.conf
+  config/runtime.conf
+  config/supervisord.conf
+
+ }
+}

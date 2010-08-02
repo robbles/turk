@@ -3,4 +3,8 @@
 .*.swo
 *.pyc
 *.pyo
-turkcore.pid
+*.egg-info/
+build/
+dist/
+doc/_build/
+

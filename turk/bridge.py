@@ -26,12 +26,7 @@ with warnings.catch_warnings():
     from twisted.internet import reactor
     from wokkel.xmppim import PresenceClientProtocol, RosterClientProtocol
 
-
-server =    ('skynet.local', 5222)
-jid =       JID("platform@skynet.local")
-password =  'password'
-
-log = turk.init_logging('bridge')
+log = logging.getLogger('bridge')
 
 class Bridge(dbus.service.Object):
     """
@@ -307,7 +302,13 @@ class Driver(dbus.service.Object):
         return self.last_update
 
 
-def run(conf='/etc/turk/turk.yml', daemon=False):
+def run(conf):
+    try:
+        import setproctitle
+        setproctitle.setproctitle(__name__)
+    except:
+        pass
+
     if isinstance(conf, basestring):
         try:
             conf = yaml.load(open(conf, 'rU'))
@@ -315,11 +316,17 @@ def run(conf='/etc/turk/turk.yml', daemon=False):
             print 'failed opening configuration file "%s"' % (conf)
             exit(1)
 
-    log = turk.init_logging('bridge', conf, debug=get_config('bridge.debug'))
+    global log
+    log = turk.init_logging('bridge', conf)
 
     jid = JID(get_config('bridge.username', conf))
 
-    bus = getattr(dbus, get_config('global.bus', conf))()
+    try:
+        bus = dbus.SessionBus()
+    except dbus.DBusException:
+        log.critical('Failed to connect to DBus SessionBus')
+        log.debug('DBus UNIX socket is at %s' % os.getenv('DBUS_SESSION_BUS_ADDRESS'))
+        exit(1)
 
     server, port = get_config('bridge.server', conf), get_config('bridge.port', conf)
     password = get_config('bridge.password', conf)
