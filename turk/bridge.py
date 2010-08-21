@@ -302,7 +302,7 @@ class Driver(dbus.service.Object):
         return self.last_update
 
 
-def run(conf):
+def run(conf='turk.yaml'):
     try:
         import setproctitle
         setproctitle.setproctitle(__name__)

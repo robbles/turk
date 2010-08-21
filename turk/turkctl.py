@@ -1,9 +1,9 @@
 #!/usr/bin/python
 
-import os, sys
+import os
+import sys
 import signal
 import yaml
-import multiprocessing
 import logging
 from time import sleep
 import subprocess
@@ -15,55 +15,122 @@ log = logging.getLogger('turkctl')
 
 class TurkAction(Action):
     """
-    Sets up the environment and config for running a turkctl command 
+    Sets up the environment and config for running a turkctl command
     """
     def __call__(self, parser, namespace, values, option_string=None):
         # Load config
         self.conf = yaml.load(namespace.config)
         os.environ['TURK_CONF'] = namespace.config.name
 
-        # Setup logging 
+        # Set D-Bus address for child processes
+        os.environ['DBUS_SESSION_BUS_ADDRESS'] = get_config('dbus.address', self.conf)
+
+        # Setup logging
         global log
         log = init_logging('turkctl', self.conf)
 
+
 class RunAction(TurkAction):
     """
-    Runs one of the Turk daemons in the foreground 
+    Runs one of the Turk services in the foreground
     """
+    daemons = ['dbus', 'bridge', 'spawner', 'supervisord', 'supervisorctl']
+
     def __call__(self, parser, namespace, values, option_string=None):
         TurkAction.__call__(self, parser, namespace, values, option_string)
         log.debug('RunAction for %s' % values)
 
-        # Set D-Bus address for child processes
-        os.environ['DBUS_SESSION_BUS_ADDRESS'] = get_config('dbus.address', self.conf)
-
         try:
-            getattr(self, '_'.join(['run', values]))(self.conf)
+            getattr(self, '_'.join(['run', values]))()
         except KeyboardInterrupt:
             log.debug('Received keyboard interrupt, shutting down')
         except BaseException, e:
             log.debug('Exception caught while running %s: %s' % (values, e))
 
-    def run_dbus(self, conf):
+    def run_dbus(self):
         dbus_daemon = get_config('dbus.daemon', self.conf)
         dbus_conf = get_config('dbus.config', self.conf)
         subprocess.call([dbus_daemon, '--config-file', dbus_conf], close_fds=True)
 
-    def run_supervisord(self, conf):
+    def run_supervisord(self):
         sd_daemon = get_config('supervisor.daemon', self.conf)
         sd_conf = get_config('supervisor.config', self.conf)
         subprocess.call([sd_daemon, '--nodaemon', '--configuration', sd_conf], close_fds=True)
 
-    def run_bridge(self, conf):
+    def run_supervisorctl(self):
+        sd_ctl = get_config('supervisor.controller', self.conf)
+        sd_conf = get_config('supervisor.config', self.conf)
+        subprocess.call([sd_ctl, '--configuration', sd_conf], close_fds=True)
+
+    def run_bridge(self):
         from turk.bridge import run
-        run(conf)
+        run(self.conf)
 
-    def run_spawner(self, conf):
+    def run_spawner(self):
         from turk.spawner import run
-        run(conf)
+        run(self.conf)
 
-    def run_turk(self, conf):
-        pass
+
+class StartAction(TurkAction):
+    """
+    Starts Turk using the specified process manager.
+    """
+    process_managers = ['supervisord', 'supervisord_hook', 'simple']
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        TurkAction.__call__(self, parser, namespace, values, option_string)
+        log.debug('StartAction')
+
+        print namespace
+        print values
+        print option_string
+
+        try:
+            getattr(self, '_'.join(['start', values]))()
+        except KeyboardInterrupt:
+            log.debug('Received keyboard interrupt, shutting down')
+        except BaseException, e:
+            log.debug('Exception caught while running %s: %s' % (values, e))
+
+    def start_supervisord(self):
+        print 'start_supervisord'
+        sd_daemon = get_config('supervisor.daemon', self.conf)
+        sd_conf = get_config('supervisor.config', self.conf)
+        retval = subprocess.call([sd_daemon, '--configuration', sd_conf], close_fds=True)
+        if not retval:
+            print 'started supervisord successfully'
+        else:
+            print 'oh shit - supervisord is fucked'
+
+    def start_supervisord_hook(self):
+        self._close_fds(256)
+        for fd in range(20):
+            try:
+                print '%d: %s' % (fd, os.fstat(fd))
+            except:
+                break
+        _close_fds(256)
+        print 'all fds done'
+        print 'start_supervisord_hook'
+        sd_conf = get_config('supervisor.config', self.conf)
+        
+        from supervisor import supervisord
+        supervisord.main(['--configuration', sd_conf])
+
+
+    def start_simple(self):
+        print 'start_simple'
+
+
+    def _close_fds(self, til):
+        if hasattr(os, 'closerange'):
+            os.closerange(3, til)
+        else:
+            for i in xrange(3, til):
+                try:
+                    os.close(i)
+                except:
+                    pass
 
 
 class ProjectAction(TurkAction):
@@ -74,13 +141,12 @@ class ProjectAction(TurkAction):
         TurkAction.__call__(self, parser, namespace, values, option_string)
 
 
-
 def run_turk(conf):
     """
-    Starts Turk as a background process. 
+    Starts Turk as a background process.
     """
     pidfile_path = get_config('turkctl.pidfile', conf)
-    
+
     if os.path.exists(pidfile_path):
         log.warning('File "%s" exists - Is Turk already running?' % pidfile_path)
         exit(-1)
@@ -93,7 +159,7 @@ def run_turk(conf):
         # Controller process
         try:
             log.debug('starting spawner...')
-            spawner = multiprocessing.Process(target=run_spawner, args=(conf,), name='spawner')
+            spawner = multiprocessing.process(target=run_spawner, args=(conf,), name='spawner')
             spawner.start()
 
             log.debug('starting bridge...')
@@ -124,51 +190,13 @@ def run_turk(conf):
         log.info('starting Turk...')
 
 
-def stop(conf):
-    """
-    Reads the PID file left by start() and sends SIGTERM to all of the daemon
-    processes that make up the framework
-    """
-    print 'stopping Turk...'
 
-    pidfile_path = get_config('turkctl.pidfile', conf)
 
-    if not os.path.exists(pidfile_path):
-        print 'Couldn\'t find pidfile! Is Turk REALLY running?'
-        return
-
-    # Get pids from file
-    pidfile = open(pidfile_path, 'rU')
-
-    # Kill all Turk processes (should be one pid per line)
-    [terminate(pid) for pid in pidfile]
-
-    os.unlink(pidfile_path)
-    pidfile.close()
-
-def clean(conf):
-    """Deletes any data associated with improperly stopped Turk"""
-
-    pidfile_path = get_config('turkctl.pidfile', conf)
-
-    if os.path.exists(pidfile_path):
-        log.debug('Removing old pidfile...')
-        os.unlink(pidfile_path)
-    else:
-        log.debug('No pidfile to remove!')
-
-def terminate(pid):
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-    except Exception, e:
-        log.debug('Failed to kill process %s: %s' % (pid, e))
-    
 def main():
     """
     Run as a utility for launching Turk
-    usage: turkctl.py start|stop
     """
-    parser = ArgumentParser(description="Launch and control Turk processes")
+    parser = ArgumentParser(description="Launch and control Turk")
 
     # configuration file
     parser.add_argument("-f", "--config-file", dest="config", type=FileType('rU'), default='turk.yaml',
@@ -177,36 +205,31 @@ def main():
     # Process control and launchers
     subparsers = parser.add_subparsers(help='Run/Start Commands')
 
-    # The Turk daemons
-    daemons = ['turk', 'dbus', 'bridge', 'spawner', 'supervisord']
-
     # Argument parsers for launcher commands
-    run_parser = subparsers.add_parser('run', help='Run a daemon in the foreground')
-    run_parser.add_argument('daemon', choices=daemons, action=RunAction)
+    run_parser = subparsers.add_parser('run', help='Run one of the turk services')
+    run_parser.add_argument('daemon', choices=RunAction.daemons, action=RunAction)
+    run_parser.add_argument('-d', '--daemonize', action='store_true', help='Fork into the background')
 
-    start_parser = subparsers.add_parser('start', help='Start a daemon in the background')
-    start_parser.add_argument('daemon', choices=daemons)
+    start_parser = subparsers.add_parser('start', help='Start turk ...right now')
+    start_parser.add_argument('-d', '--daemonize', action='store_true', help='Fork into the background')
+    start_parser.add_argument('process manager', nargs='?', choices=StartAction.process_managers, default='supervisord', action=StartAction)
 
     restart_parser = subparsers.add_parser('restart', help='Restart a daemon')
-    restart_parser.add_argument('daemon', choices=daemons)
+    restart_parser.add_argument('daemon', choices=RunAction.daemons)
 
     stop_parser = subparsers.add_parser('stop', help='Stop a daemon')
-    stop_parser.add_argument('daemon', choices=daemons)
+    stop_parser.add_argument('daemon', choices=RunAction.daemons)
 
     clean_parser = subparsers.add_parser('clean', help='Clean up the process files from a crashed daemon')
-    clean_parser.add_argument('daemon', choices=daemons)
+    clean_parser.add_argument('daemon', choices=RunAction.daemons)
 
     # Argument parsers for configuration/project commands
     setup = subparsers.add_parser('start_project', help='Setup a new turk project')
     setup.add_argument('path', default='./', nargs='?', help='The path to setup the project at (defaults to current directory)',
             action=ProjectAction)
-    
-    args = parser.parse_args()
 
+    args = parser.parse_args()
 
 
 if __name__ == '__main__':
     main()
-
-
-

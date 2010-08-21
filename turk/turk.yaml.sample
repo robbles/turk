@@ -1,5 +1,7 @@
 # control interface and launcher (turkctl.py)
 turkctl:
+    # Format for daemon pid files ("%(name)s" will be replaced with process name)
+    pidfiles: var/%(name)s.pid
 
 # D-Bus Session
 dbus:

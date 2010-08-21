@@ -37,7 +37,7 @@ setup (
 
     entry_points = {
         'console_scripts': [
-            'turkctl = turk.turkctl:main',
+            'turk = turk.turkctl:main',
         ],
         'gui_scripts': []
     }

@@ -168,7 +168,7 @@ def get_spawner(bus=None, path='/Spawner'):
 
     
             
-def run(conf):
+def run(conf='turk.yaml'):
     """
     Start Spawner as a standalone process, using information
     from configuration file (or equivalent dictionary-like object)
