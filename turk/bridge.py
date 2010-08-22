@@ -303,12 +303,7 @@ class Driver(dbus.service.Object):
 
 
 def run(conf='turk.yaml'):
-    try:
-        import setproctitle
-        setproctitle.setproctitle(__name__)
-    except:
-        pass
-
+    # Load conf if it's a filename
     if isinstance(conf, basestring):
         try:
             conf = yaml.load(open(conf, 'rU'))
@@ -318,6 +313,7 @@ def run(conf='turk.yaml'):
 
     global log
     log = turk.init_logging('bridge', conf)
+    log.debug('DBUS Session Bus is at %s' % os.environ['DBUS_SESSION_BUS_ADDRESS'])
 
     jid = JID(get_config('bridge.username', conf))
 

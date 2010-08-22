@@ -10,3 +10,5 @@ doc/_build/*
 doc/_build/**/*
 logs/
 var/
+turk.yaml
+
