@@ -9,7 +9,7 @@ from time import sleep
 import subprocess
 from argparse import ArgumentParser, FileType, Action
 
-from turk import get_config, init_logging
+from turk import load_config, get_config, init_logging, DEFAULT_CONF_FILE
 
 
 class ProcessAction(Action):
@@ -31,8 +31,7 @@ class ProcessAction(Action):
 
     def prepare(self, namespace):
         # Load config
-        self.conf = yaml.load(namespace.config)
-        namespace.config.close()
+        self.conf = load_config(namespace.config)
 
         os.environ['TURK_CONF'] = namespace.config.name
 
@@ -155,7 +154,12 @@ class ShellAction(ProcessAction):
         cmd_line = [sd_ctl, '--configuration', sd_conf]
         if command:
             cmd_line.append(command)
-        subprocess.call(cmd_line, close_fds=True)
+        try:
+            subprocess.call(cmd_line, close_fds=True)
+        except KeyboardInterrupt:
+            print '^C'
+        except BaseException, e:
+            self.log.error('Exception caught: %s' % e)
 
 
 class ProjectAction(Action):
@@ -166,20 +170,15 @@ class ProjectAction(Action):
         pass
 
 
-
-
-
-def main():
+def main(config_file=DEFAULT_CONF_FILE):
     """
     Run as a utility for launching Turk
     """
     parser = ArgumentParser(description="Launch and control Turk")
 
     # configuration file
-    PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
-    conf_file = os.path.join(PROJECT_DIR, 'turk.yaml')
     parser.add_argument("-f", "--config-file", dest="config", type=FileType('rU'), 
-            default=conf_file, help="default configuration file")
+            default=config_file, help="default configuration file")
 
     # Process control and launchers
     subparsers = parser.add_subparsers(help='Run/Start Commands')
