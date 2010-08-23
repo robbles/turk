@@ -170,7 +170,7 @@ class ProjectAction(Action):
         pass
 
 
-def main(config_file=DEFAULT_CONF_FILE):
+def main(config_file='./turk.yaml'):
     """
     Run as a utility for launching Turk
     """
