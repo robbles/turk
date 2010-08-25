@@ -7,8 +7,10 @@ import yaml
 import logging
 from time import sleep
 import subprocess
+import shutil
 from argparse import ArgumentParser, FileType, Action
 
+import turk
 from turk import load_config, get_config, init_logging, DEFAULT_CONF_FILE
 
 
@@ -166,10 +168,47 @@ class ProjectAction(Action):
     """
     Builds a new Turk project folder
     """
-    def __call__(self, parser, namespace, values, option_string=None):
-        pass
+    def __call__(self, parser, namespace, value, option_string=None):
+        project_dir = value
+        skel_dir = os.path.join(turk.INSTALL_DIR, 'skel')
+        print 'copying from %s to %s' % (skel_dir, project_dir)
 
+        try:
+            if not os.path.exists(project_dir):
+                print 'Creating %s' % project_dir
+                os.mkdir(project_dir)
+            else:
+                print 'Error: %s already exists!' % project_dir
+                return
+                    
+            for path, subdirs, files in os.walk(skel_dir):
 
+                for i, subdir in enumerate(subdirs):
+                    # Skip hidden dirs
+                    if subdir.startswith('.'):
+                        del subdirs[i]
+                        continue
+
+                    # Skip contents of these dirs
+                    if subdir in ['var', 'log']:
+                        del subdirs[i]
+
+                    newdir = os.path.join(project_dir, path[len(skel_dir)+1:], subdir)
+                    print 'creating directory %s' % os.path.abspath(newdir)
+                    os.mkdir(newdir)
+
+                for f in files:
+                    if f.endswith('.pyc'):
+                        continue
+                    skel = os.path.join(path, f)
+                    newfile = os.path.join(project_dir, path[len(skel_dir)+1:], f)
+                    print 'copying %s to %s' % (os.path.basename(skel), os.path.abspath(newfile))
+                    shutil.copy2(os.path.join(path, f), newfile)
+
+        except OSError, e:
+            print e
+            return
+        
 
 def main(config_file='./turk.yaml'):
     """
@@ -207,8 +246,8 @@ def main(config_file='./turk.yaml'):
     shell_parser.add_argument('command', nargs='?', action=ShellAction, default='', help='Run this command instead of starting an interactive shell')
 
     # Argument parsers for configuration/project commands
-    setup = subparsers.add_parser('start_project', help='Setup a new turk project')
-    setup.add_argument('path', default='./', nargs='?', help='The path to setup the project at (defaults to current directory)',
+    project = subparsers.add_parser('start_project', help='Setup a new turk project')
+    project.add_argument('path', help='The path to setup the project at (defaults to current directory)',
             action=ProjectAction)
 
     args = parser.parse_args()
