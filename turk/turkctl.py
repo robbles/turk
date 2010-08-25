@@ -33,7 +33,7 @@ class ProcessAction(Action):
         # Load config
         self.conf = load_config(namespace.config)
 
-        os.environ['TURK_CONF'] = namespace.config.name
+        os.environ['TURK_CONF'] = namespace.config
 
         # Set D-Bus address for child processes
         os.environ['DBUS_SESSION_BUS_ADDRESS'] = get_config('dbus.address', self.conf)
@@ -170,6 +170,7 @@ class ProjectAction(Action):
         pass
 
 
+
 def main(config_file='./turk.yaml'):
     """
     Run as a utility for launching Turk
@@ -177,8 +178,8 @@ def main(config_file='./turk.yaml'):
     parser = ArgumentParser(description="Launch and control Turk")
 
     # configuration file
-    parser.add_argument("-f", "--config-file", dest="config", type=FileType('rU'), 
-            default=config_file, help="default configuration file")
+    parser.add_argument("-f", "--config-file", dest="config",
+        default=config_file, help="default configuration file")
 
     # Process control and launchers
     subparsers = parser.add_subparsers(help='Run/Start Commands')
