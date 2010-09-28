@@ -25,13 +25,13 @@ bridge:
     username: turk-platform-1@jabber.iitsp.com
     password: password
 
-# spawner (starts/stops and manages drivers)
-spawner:
+# manager (starts/stops and manages drivers)
+manager:
     supervisor: False
     # Add drivers that should be automatically started here along with their parameters
-    autostart: []
-    # Location of drivers (prefixed to all driver filenames)
-    drivers: examples/drivers
+    autostart: [{'path':'debug.py', 'args':[], 'env':{}}]
+    # Location of drivers (prefixed to all relative driver filenames)
+    drivers: ./drivers
 
 log:
     file: %(here)s/logs/%%(name)s.txt

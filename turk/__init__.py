@@ -10,8 +10,8 @@ INSTALL_DIR = abspath(dirname(__file__))
 TURK_BRIDGE_SERVICE = "org.turkinnovations.turk.Bridge"
 TURK_BRIDGE_INTERFACE = "org.turkinnovations.turk.Bridge"
 TURK_DRIVER_INTERFACE = "org.turkinnovations.turk.Driver"
-TURK_SPAWNER_SERVICE = "org.turkinnovations.turk.Spawner"
-TURK_SPAWNER_INTERFACE = "org.turkinnovations.turk.Spawner"
+TURK_MANAGER_SERVICE = "org.turkinnovations.turk.Spawner"
+TURK_MANAGER_INTERFACE = "org.turkinnovations.turk.Spawner"
 TURK_DRIVER_ERROR = "org.turkinnovations.turk.DriverError"
 
 # XMPP Namespace
@@ -70,7 +70,7 @@ def get_config(key, conf=None, substitute=False):
             temp = temp.__getitem__(query)
         return temp
     except Exception, e:
-        if conf != DEFAULTS:
+        if conf != None:
             return get_config(key)
         else:
             # Should only happen if unknown option is requested or

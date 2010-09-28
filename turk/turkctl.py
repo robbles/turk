@@ -14,7 +14,7 @@ import turk
 from turk import load_config, get_config, init_logging, DEFAULT_CONF_FILE
 
 
-class ProcessAction(Action):
+class LaunchAction(Action):
     """
     Sets up the environment and config for running a turkctl command
     """
@@ -33,7 +33,12 @@ class ProcessAction(Action):
 
     def prepare(self, namespace):
         # Load config
-        self.conf = load_config(namespace.config)
+        try:
+            self.conf = load_config(namespace.config)
+        except Exception, e:
+            print 'Error loading configuration file "%s":' % namespace.config
+            print e
+            exit()
 
         os.environ['TURK_CONF'] = namespace.config
 
@@ -52,11 +57,11 @@ class NotImplementedAction(Action):
         raise NotImplementedError('Command not implemented')
 
 
-class RunAction(ProcessAction):
+class RunAction(LaunchAction):
     """
     Runs one of the Turk services in the foreground
     """
-    daemons = ['dbus', 'bridge', 'spawner', 'supervisord']
+    daemons = ['dbus', 'bridge', 'manager', 'supervisord']
 
     def do_dbus(self):
         dbus_daemon = get_config('dbus.daemon', self.conf)
@@ -72,41 +77,32 @@ class RunAction(ProcessAction):
         from turk.bridge import run
         run(self.conf)
 
-    def do_spawner(self):
-        from turk.spawner import run
+    def do_manager(self):
+        from turk.manager import run
         run(self.conf)
 
 
-class StartAction(ProcessAction):
+class StartAction(LaunchAction):
     """
     Starts Turk using the specified process manager.
     """
     managers = ['supervisord', 'simple']
 
     def do_supervisord(self):
-        sd_daemon = get_config('supervisor.daemon', self.conf)
         sd_conf = get_config('supervisor.config', self.conf)
-        retval = subprocess.call([sd_daemon, '--configuration', sd_conf], close_fds=True)
-        if not retval:
-            self.log.debug('started supervisord successfully')
-        else:
-            self.log.error('oh shit - supervisord is fucked')
+        try:
+            from supervisor import supervisord
+            args = ['--configuration', sd_conf, '--nodaemon']
+            supervisord.main(args)
+        except BaseException, e:
+            self.log.error('Error starting supervisord: %s' % e)
+            exit(1)
 
     def do_simple(self):
         raise NotImplementedError('Command not implemented')
 
-    def _close_fds(self, til):
-        if hasattr(os, 'closerange'):
-            os.closerange(3, til)
-        else:
-            for i in xrange(3, til):
-                try:
-                    os.close(i)
-                except:
-                    pass
 
-
-class StopAction(ProcessAction):
+class StopAction(LaunchAction):
     """
     Stops the process manager.
     """
@@ -119,7 +115,7 @@ class StopAction(ProcessAction):
         raise NotImplementedError('Command not implemented')
 
 
-class RestartAction(ProcessAction):
+class RestartAction(LaunchAction):
     """
     Restarts the process manager, one of the turk services, or a driver process.
     """
@@ -129,7 +125,7 @@ class RestartAction(ProcessAction):
         sd_conf = get_config('supervisor.config', self.conf)
         if namespace.driver:
             self.log.debug('Restarting driver %s' % name)
-            #TODO: do this with spawner instead of supervisord?
+            #TODO: do this with manager instead of supervisord?
             subprocess.call([sd_ctl, '--configuration', sd_conf, 'restart', name], close_fds=True)
         else:
             self.log.debug('Restarting service %s' % name)
@@ -145,22 +141,23 @@ class RestartAction(ProcessAction):
 
 
 
-class ShellAction(ProcessAction):
+class ShellAction(LaunchAction):
     """
     Starts a supervisorctl shell or runs a command.
     """
     def __call__(self, parser, namespace, command, option_string=None):
         self.prepare(namespace)
-        sd_ctl = get_config('supervisor.controller', self.conf)
         sd_conf = get_config('supervisor.config', self.conf)
-        cmd_line = [sd_ctl, '--configuration', sd_conf]
+        cmd_line = ['--configuration', sd_conf]
         if command:
             cmd_line.append(command)
         try:
-            subprocess.call(cmd_line, close_fds=True)
+            from supervisor import supervisorctl
+            supervisorctl.main(cmd_line)
         except KeyboardInterrupt:
             print '^C'
         except BaseException, e:
+            import traceback;traceback.print_exc() 
             self.log.error('Exception caught: %s' % e)
 
 
@@ -217,21 +214,17 @@ def main(config_file='./turk.yaml'):
     parser = ArgumentParser(description="Launch and control Turk")
 
     # configuration file
-    parser.add_argument("-f", "--config-file", dest="config",
+    parser.add_argument("-f", "--config-file", dest="config", metavar='FILENAME',
         default=config_file, help="default configuration file")
 
     # Process control and launchers
-    subparsers = parser.add_subparsers(help='Run/Start Commands')
+    subparsers = parser.add_subparsers()
 
     # Argument parsers for launcher commands
     # NOTE: these don't take options for the subcommands, because it's too hard
     # to get right, and all configuration can be done in the config files anyways
 
-    run_parser = subparsers.add_parser('run', help='Run one of the turk services')
-    run_parser.add_argument('daemon', nargs='?', default='supervisord', choices=RunAction.daemons, action=RunAction)
-    run_parser.add_argument('-d', '--daemonize', action='store_true', help='Fork into the background')
-
-    start_parser = subparsers.add_parser('start', help='Start turk ...right now')
+    start_parser = subparsers.add_parser('start', help='Start turk')
     start_parser.add_argument('-d', '--daemonize', action='store_true', help='Fork into the background')
     start_parser.add_argument('manager', nargs='?', choices=StartAction.managers, default=StartAction.managers[0], action=StartAction)
 
@@ -242,11 +235,15 @@ def main(config_file='./turk.yaml'):
     restart_parser.add_argument('--driver', action='store_true', help='Look in known drivers for process to restart')
     restart_parser.add_argument('process', nargs='?', action=RestartAction, default='turk')
 
+    run_parser = subparsers.add_parser('run', help='Run one of the turk services')
+    run_parser.add_argument('daemon', choices=RunAction.daemons, action=RunAction)
+    run_parser.add_argument('-d', '--daemonize', action='store_true', help='Fork into the background')
+
     shell_parser = subparsers.add_parser('shell', help='Start a supervisorctl shell or run a command')
     shell_parser.add_argument('command', nargs='?', action=ShellAction, default='', help='Run this command instead of starting an interactive shell')
 
     # Argument parsers for configuration/project commands
-    project = subparsers.add_parser('start_project', help='Setup a new turk project')
+    project = subparsers.add_parser('newproject', help='Setup a new turk project')
     project.add_argument('path', help='The path to setup the project at (defaults to current directory)',
             action=ProjectAction)
 
