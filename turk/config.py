@@ -36,10 +36,10 @@ class YamlConfig(object):
         return tuple(all)
 
 
-class TurkConfig(object):
+class TurkConfig(YamlConfig):
     """ 
-    Loads the turk configuration file (turk.yaml) and provides convenience
-    methods for retrieving nested values.
+    Loads the turk configuration file (turk.yaml) and provides methods for
+    working with missing and default values.
     """
     pass
 

@@ -69,6 +69,7 @@ class RunAction(LaunchAction):
         subprocess.call([dbus_daemon, '--config-file', dbus_conf], close_fds=True)
 
     def do_supervisord(self):
+        # TODO: Use similar trick to StartAction.do_supervisord for this
         sd_daemon = get_config('supervisor.daemon', self.conf)
         sd_conf = get_config('supervisor.config', self.conf)
         subprocess.call([sd_daemon, '--nodaemon', '--configuration', sd_conf], close_fds=True)
